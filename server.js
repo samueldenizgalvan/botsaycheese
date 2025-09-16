@@ -170,7 +170,7 @@ app.post('/api/pedidos/:id/confirm', async (req,res)=>{
   const name  = '';
       if (phone) {
         const fecha = (order?.fields?.fecha) ? ` para el ${order.fields.fecha}` : '';
-  const msg = `¡Hola! 🎉\nHemos confirmado tu pedido${fecha}. ✅\nGracias por confiar en nosotros. 🧁🥳`;
+  const msg = `¡Hola! 🎉\nHemos confirmado tu pedido${fecha}. ✅\n Recuerda que los pagos son a la recogida en efectivo o tarjeta . Gracias por confiar en nosotros. 🧁🥳  .`;
         await wa.sendMessage(tenant, phone, msg).catch(()=>{});
       }
     } catch(e){ console.warn('[confirm notify] no WA message sent:', e.message); }
