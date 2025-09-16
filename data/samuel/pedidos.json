@@ -1,1 +1,93 @@
-[]
+[
+  {
+    "id": "1",
+    "status": "canceled",
+    "createdAt": 1758043725568,
+    "customer": {
+      "phone": "657826485"
+    },
+    "fields": {
+      "items": [
+        {
+          "tamano": "grande",
+          "label": "Grande (35€)",
+          "type": "entera",
+          "cantidad": 2,
+          "sabores": [
+            "Caramelo Salado"
+          ],
+          "fecha": "24-09",
+          "observacion": "si",
+          "precioUnit": 35,
+          "total": 70
+        }
+      ],
+      "telefono": "657826485",
+      "tamano": "grande",
+      "sabores": [
+        "Caramelo Salado"
+      ],
+      "cantidad": 2,
+      "fecha": "24-09",
+      "fecha_dow": "Miércoles",
+      "observacion": "si"
+    },
+    "total": 70,
+    "confirmedAt": 1758043751066,
+    "canceledAt": 1758043860788,
+    "replacedBy": "2"
+  },
+  {
+    "id": "2",
+    "status": "confirmed",
+    "createdAt": 1758043860788,
+    "customer": {
+      "phone": "657826485"
+    },
+    "fields": {
+      "items": [
+        {
+          "tamano": "cajitas",
+          "label": "Cajitas (12€)",
+          "type": "cajitas",
+          "cantidad": 1,
+          "sabores": [
+            "Pistacho"
+          ],
+          "fecha": "05-10",
+          "observacion": "si",
+          "precioUnit": 12,
+          "total": 12
+        }
+      ],
+      "telefono": "657826485",
+      "tamano": "cajitas",
+      "sabores": [
+        "Pistacho"
+      ],
+      "cantidad": 1,
+      "fecha": "05-10",
+      "fecha_dow": "Domingo",
+      "observacion": "si"
+    },
+    "items": [
+      {
+        "tamano": "cajitas",
+        "label": "Cajitas (12€)",
+        "type": "cajitas",
+        "cantidad": 1,
+        "sabores": [
+          "Pistacho"
+        ],
+        "fecha": "05-10",
+        "observacion": "si",
+        "precioUnit": 12,
+        "total": 12
+      }
+    ],
+    "total": 12,
+    "modified": true,
+    "replaces": "1",
+    "confirmedAt": 1758044167814
+  }
+]

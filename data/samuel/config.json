@@ -12,7 +12,7 @@
     "where": ["donde estamos", "dirección", "direccion", "ubicacion", "ubicación", "mapa"]
   },
   "catalog": {
-    "flavors": ["Clásica", "Lotus", "Pistacho", "Oreo", "Nocilla", "Gofio", "Mango-Maracuyá", "Hippo"],
+    "flavors": ["Clásica", "Lotus", "Pistacho", "Oreo", "Nocilla", "Gofio", "Mango-Maracuyá", "Hippo", "Caramelo Salado"],
     "sizes": [
       { "id": "grande",  "label": "Grande (35€)",  "type": "entera",  "price": 35 },
       { "id": "cajitas", "label": "Cajitas (12€)", "type": "cajitas", "price": 12 }
@@ -26,7 +26,7 @@
 
     "ask_telefono": "Indica tu *teléfono* (9 dígitos) 📞:",
     "ask_tamano": "Elige *tamaño* 📏:\n1) *Grande* (10–12 raciones, 1.5 Kg) – *35€*\n2) *Cajitas* (400 g) – *12€*\nResponde *1/2* o escribe *grande/cajitas*.",
-    "flavor_list": "Sabores 🍓:\n• Clásica 🍰\n• Lotus 🍪\n• Pistacho 🟢🥜\n• Oreo 🍪\n• Nocilla 🍫\n• Gofio 🌾\n• Mango-Maracuyá 🥭✨\n• Hippo 🦛🍫",
+  "flavor_list": "Sabores 🤤:\n• Clásica 🍰\n• Lotus 🍪\n• Pistacho 🟢\n• Oreo 🔵\n• Nocilla 🍫\n• Gofio 🌾\n• Mango-Maracuyá 🥭\n• Hippo 🦛\n• Caramelo Salado 🦅\nUsa solo los de la lista mostrada",
     "ask_sabores": "¿Qué *sabores* quieres? 🍰✍️ (separa por comas si eliges más de uno o escríbelos en observaciones)\n\n",
 
     "ask_qty_grande": "¿Cuántas *tartas grandes* quieres? (1–20) 🔢",
@@ -36,8 +36,8 @@
 
   "summary": "🧾 Pedido para {telefono}.\n• Tamaño: {tamano}\n• Sabores: {sabores}\n• Cantidad: {cantidad}\n• Recogida: {fecha}\n• Total aprox: *{total}€*\n\n¿Confirmas? (si/no) ✅❌",
     "confirm_yesno": "👉 Responde *si* o *no*, por favor.",
-    "confirmed": "¡Listo! ✅ Hemos registrado tu pedido. Te avisaremos al recibirlo oficialmente 🙌.",
-    "canceled": "Entendido. Pedido cancelado ❌. ¡Gracias por avisar!",
+    "confirmed": "¡Listo! ✅ Hemos registrado tu pedido. Te enviaremos la confirmacion 🙌.",
+    "canceled": "Entendido. No se ha hecho ningun pedido ❌. ¡Gracias !",
 
     "delete_intro": "De acuerdo 🗂️. Dime el *número de teléfono* del pedido que quieres *cancelar* (9 dígitos) 🔢.",
     "delete_none": "No encontré pedidos *pendientes* con ese número 🔎.",
@@ -61,7 +61,7 @@
   "options": {
     "tamano": ["grande", "cajitas"],
     "tamano_alias": { "1": "grande", "2": "cajitas", "tarta grande": "grande" },
-    "sabores": ["Clásica", "Lotus", "Pistacho", "Oreo", "Nocilla", "Gofio", "Mango-Maracuyá", "Hippo"],
+  "sabores": ["Clásica", "Lotus", "Pistacho", "Oreo", "Nocilla", "Gofio", "Mango-Maracuyá", "Hippo", "Caramelo Salado"],
     "precios": { "grande": 35, "cajitas": 12 }
   },
   "flow": [
@@ -73,7 +73,7 @@
         {
           "ask": "ask_sabores",
           "save": "sabores",
-          "validate": { "multiOf": ["Clásica", "Lotus", "Pistacho", "Oreo", "Nocilla", "Gofio", "Mango-Maracuyá", "Hippo"] }
+          "validate": { "multiOf": ["Clásica", "Lotus", "Pistacho", "Oreo", "Nocilla", "Gofio", "Mango-Maracuyá", "Hippo", "Caramelo Salado"] }
         },
         { "when": "tamano == grande",  "ask": "ask_qty_grande",  "save": "cantidad", "validate": { "numRange": [1, 20] } },
         { "when": "tamano == cajitas", "ask": "ask_qty_cajitas", "save": "cantidad", "validate": { "numRange": [1, 100] } },

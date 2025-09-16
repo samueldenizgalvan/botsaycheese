@@ -1,6 +1,7 @@
 require('dotenv').config();
 // Zona horaria por defecto antes de usar fechas
 process.env.TZ = process.env.TZ || 'Europe/Madrid';
+const DISABLE_WA = /^(1|true|yes)$/i.test(String(process.env.DISABLE_WA||''));
 const express = require('express');
 const compression = require('compression');
 const cors = require('cors');
@@ -242,7 +243,7 @@ io.on('connection', socket => {
   socket.join(tenant);
 });
 
-const PORT = 3000; // fijado
+const PORT = Number(process.env.PORT || 3000);
 
 server.on('error', (err) => {
   if (err.code === 'EADDRINUSE') {
@@ -267,9 +268,23 @@ async function initHttp(){
 
 // Global error handlers
 process.on('unhandledRejection', (e) => {
+  try {
+    const msg = (e && (e.message || String(e))) || '';
+    if (/Execution context was destroyed/i.test(msg)) {
+      console.warn('[UNHANDLED][WA] Navegación de Puppeteer (benigno). Continuando…');
+      return;
+    }
+  } catch {}
   console.error('[UNHANDLED]', e);
 });
 process.on('uncaughtException', (e) => {
+  try {
+    const msg = (e && (e.message || String(e))) || '';
+    if (/Execution context was destroyed/i.test(msg)) {
+      console.warn('[UNCAUGHT][WA] Navegación de Puppeteer (benigno).');
+      return;
+    }
+  } catch {}
   console.error('[UNCAUGHT]', e);
 });
 
@@ -339,7 +354,11 @@ function startDailyReminderJob(){
 async function bootstrap(){
   await initHttp();
   startDailyReminderJob();
-  await initWA();
+  if (!DISABLE_WA) {
+    await initWA();
+  } else {
+    console.log('[server] DISABLE_WA=1 → bot de WhatsApp deshabilitado (solo panel).');
+  }
 }
 bootstrap().catch(err=>{
   console.error('[FATAL]', err);

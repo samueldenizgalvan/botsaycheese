@@ -156,6 +156,21 @@ function validateDateMin3d(text){
 	return d.getTime() >= min.getTime();
 }
 
+// Day-of-week helpers (Spanish)
+function dayNameEs(d){
+	try{
+		const days=['Domingo','Lunes','Martes','Miércoles','Jueves','Viernes','Sábado'];
+		return days[d.getDay()]||'';
+	}catch{ return ''; }
+}
+function formatFechaWithDay(conv){
+	try{
+		const f = String(conv?.data?.fecha||'');
+		const dow = String(conv?.data?.fecha_dow||'');
+		return dow ? `${f} (${dow})` : f;
+	} catch { return String(conv?.data?.fecha||''); }
+}
+
 // Render helpers
 function renderFlavorList(cfg){
 	const custom = cfg?.messages?.flavor_list;
@@ -184,7 +199,7 @@ function buildAskDatePrompt(){
 	const pad=n=>String(n).padStart(2,'0');
 	const minStr = `${pad(min.getDate())}-${pad(min.getMonth()+1)}`;
 	const maxStr = `${pad(max.getDate())}-${pad(max.getMonth()+1)}`;
-	return `Indica fecha (DD-MM o DD/MM). Mínimo 3 días (>= ${minStr}) y máximo 3 meses (<= ${maxStr}).`;
+	return `Indica fecha (DD-MM o DD/MM). Mínimo 3 días (>= ${minStr}) y máximo 3 meses (<= ${maxStr}). No entregamos lunes ni martes.`;
 }
 
 function validateFlavorList(items, allowed){
@@ -254,6 +269,10 @@ function canonicalFlavorMap(config){
 		// Alias: si el sabor contiene "mango", aceptar también "mango"
 		if(key.includes('mango') && !map.has('mango')){
 			map.set('mango', f);
+		}
+		// Alias: si el sabor contiene "caramelo", aceptar también "caramelo"
+		if(key.includes('caramelo') && !map.has('caramelo')){
+			map.set('caramelo', f);
 		}
 	}
 	return map;
@@ -386,6 +405,22 @@ function summarizeItems(conv, cfg, msgs){
 	return lines.join('\n');
 }
 
+// Build a lightweight confirmation key to avoid double-processing "sí"
+function buildConfirmKey(items, data){
+	try{
+		const total = Array.isArray(items) ? items.reduce((a,it)=> a + (Number(it.total)||0), 0) : Number(data?.total||0) || 0;
+		const fecha = String(data?.fecha||'');
+		const shape = Array.isArray(items) ? items.map(it=>({
+			l: it.label||it.tamano||'',
+			c: Number(it.cantidad||0)||0,
+			t: Number(it.total||0)||0,
+			s: Array.isArray(it.sabores)? it.sabores.join(','): (Array.isArray(it.sabores_por_porcion)? it.sabores_por_porcion.flat().join(',') : '')
+		})) : [];
+		const keyObj = { fecha, total, n: shape.length, shape };
+		return JSON.stringify(keyObj);
+	} catch { return `${Date.now()}`; }
+}
+
 // Summarize an already saved order (from store) for preview
 function summarizeStoredOrder(order){
 	try{
@@ -474,7 +509,7 @@ function genPromptForStage(cfg, conv, msgs, stage){
 				.replace('{tamano}',conv.selectedSize?.label||conv.data?.tamano||'')
 				.replace('{cantidad}',String(cantidad))
 				.replace('{sabores}',(conv.data?.sabores||[]).join(', '))
-				.replace('{fecha}',conv.data?.fecha||'')
+				.replace('{fecha}',formatFechaWithDay(conv))
 				.replace('{total}',String(conv.total||0));
 			return summary+'\n'+(msgs.confirm_yesno||'👉 Responde *sí* o *no*.');
 		}
@@ -568,6 +603,21 @@ async function manejarMensajeTenant(a, b, c){
 	// --- LOG: Stage y sesión al recibir mensaje ---
 	console.log(`[LOG] [${tenantId}] Mensaje recibido de ${msg.from}: "${msg.body}"`);
 	console.log(`[LOG] [${tenantId}] Stage actual para ${phone}: ${activeSessionStage}`);
+
+		// Auto-menú: con cualquier palabra, si está idle y hace >5 minutos del último menú
+		try {
+			const isIdleNow = (!conv || !conv.stage || conv.stage === 'none');
+			const last = Number(session && session.lastMenuAt || 0);
+			const windowMs = 5*60*1000;
+			if (isIdleNow && (!last || (Date.now() - last > windowMs))) {
+				await sendWelcomeAndMenu(client, msg.from, cfg);
+				const s = (await convStore.readConv(tenantId, phone)) || {};
+				s.greetedAt = new Date().toISOString();
+				s.lastMenuAt = Date.now();
+				await convStore.writeConv(tenantId, phone, s);
+				return null;
+			}
+		} catch {}
 	// Detección de múltiples sesiones activas (por error)
 	if (session && session.state && Array.isArray(session.state)) {
 		console.warn(`[WARN] [${tenantId}] Varias sesiones activas para ${phone}:`, session.state);
@@ -658,7 +708,7 @@ async function manejarMensajeTenant(a, b, c){
 				.replace('{count}', String(confirmedMatches.length))
 				.replace('{telefono}', tel9);
 			const blocks = confirmedMatches.map(o=>`Pedido ID ${o.id}\n${summarizeStoredOrder(o)}`);
-			const tail = msgs.delete_confirm || '¿Este es tu pedido? ¿Seguro que quieres cancelar? (sí/no)';
+			const tail = msgs.delete_confirm || '¿Este es tu pedido? ¿Seguro que quieres cancelar y empezar uno nuevo? (sí/no)';
 			const out = [headerBase, ...blocks, tail].join('\n\n');
 			{
 				const preview = String(out).slice(0,80);
@@ -866,6 +916,9 @@ async function manejarMensajeTenant(a, b, c){
 			const next = {
 				stage: 'ask_size',
 				data: {},
+				items: [],
+				selectedSize: undefined,
+				total: 0,
 				startedAt: Date.now(),
 				welcomed: conv.welcomed,
 				lastWelcomeAt: conv.lastWelcomeAt,
@@ -885,7 +938,7 @@ async function manejarMensajeTenant(a, b, c){
 				const senderDigits = String(phone).replace(/\D/g,'');
 				const tel9 = senderDigits.slice(-9);
 				const st = runtime.getState(tenantId, phone) || next;
-				st.data = { ...(st.data||{}), telefono: tel9 };
+				st.data = { telefono: tel9 };
 				runtime.setState(tenantId, phone, st);
 			} catch{}
 			const prompt = buildSizeQuestion(cfg);
@@ -1067,9 +1120,9 @@ if(conv.stage==='none'){
 	const isWhereTrigger = /^4$/.test(lower) || /donde|dónde|direccion|dirección/.test(lower);
     const isMenuExplicit = (keywords.menu||[]).map(norm).some(w=> lower.includes(w));
     if(isOrderTrigger){
-	runtime.setState(tenantId, phone,{stage:'ask_size',data:{},startedAt:Date.now(),welcomed:conv.welcomed,lastWelcomeAt:conv.lastWelcomeAt});
+	runtime.setState(tenantId, phone,{stage:'ask_size',data:{},items:[],selectedSize:undefined,total:0,startedAt:Date.now(),welcomed:conv.welcomed,lastWelcomeAt:conv.lastWelcomeAt});
 	// Auto-set phone
-	try{ const tel9 = String(phone).replace(/\D/g,'').slice(-9); const st=runtime.getState(tenantId, phone)||{}; st.data={...(st.data||{}), telefono: tel9}; runtime.setState(tenantId, phone, st);}catch{}
+	try{ const tel9 = String(phone).replace(/\D/g,'').slice(-9); const st=runtime.getState(tenantId, phone)||{}; st.data={ telefono: tel9 }; runtime.setState(tenantId, phone, st);}catch{}
 	const prompt = buildSizeQuestion(cfg);
         if(shouldSkipPromptDueToDebounce(session, prompt)) return null;
         await setLastPrompt(tenantId, phone, prompt);
@@ -1108,11 +1161,14 @@ if(conv.stage==='none'){
 			return 'Solo podemos modificar pedidos con al menos 3 días de antelación a la recogida.';
 		}
 		// Announce restart once
-		await sendSafe(client, msg.from, 'Perfecto 👍 Empezamos un pedido nuevo a partir del anterior. Indica de nuevo lo que quieres.');
+		await sendSafe(client, msg.from, 'Perfecto 👍 Haremos un pedido nuevo y el antiguo se cancelará. Indica de nuevo lo que quieres.');
 		// Store target id and phone, then move to ask_size
 		const st = runtime.getState(tenantId, phone) || { stage:'none', data:{} };
 		st.modifyTargetId = String(existing.id);
-		st.data = { ...(st.data||{}), telefono: String(existing?.customer?.phone || phone).replace(/\D/g,'').slice(-9) };
+		st.items = [];
+		st.selectedSize = undefined;
+		st.total = 0;
+		st.data = { telefono: String(existing?.customer?.phone || phone).replace(/\D/g,'').slice(-9) };
 		st.stage = 'ask_size';
 		st.flow = 'new_order';
 		runtime.setState(tenantId, phone, st);
@@ -1188,7 +1244,7 @@ if(conv.stage==='none'){
 				}
 				const resolved = resolveFlavors(list, fmap);
 				if(!resolved.ok){
-					return `Sabor no reconocido: ${resolved.bad}. Usa solo los de la lista mostrada.`;
+					return `Sabor no reconocido: ${resolved.bad}. Usa solo los de la lista mostrada. Atras es para volver. O cancelar para cancelar el proceso de pedido .`;
 				}
 				conv.data.sabores = resolved.flavors;
 				await markLastPromptAnswered(tenantId, phone);
@@ -1244,9 +1300,16 @@ if(conv.stage==='none'){
 			let max = new Date(now); max.setMonth(max.getMonth()+3);
 			if(max.getFullYear() > now.getFullYear()) max = new Date(now.getFullYear(), 11, 31);
 			if(dt.getTime() > max.getTime()) return 'Gracias 🙌. Podemos agendar con hasta 3 meses de antelación. Indica una fecha dentro de los próximos 3 meses.';
+			// Weekday restriction: no Monday(1) or Tuesday(2)
+			const dow = dt.getDay();
+			if(dow===1 || dow===2){
+				const name = dayNameEs(dt);
+				return `Ese día cae en ${name} y no realizamos entregas. Indica otra fecha (de miércoles a domingo).`;
+			}
 			// Guardar sin año: DD-MM
 			const pad=n=>String(n).padStart(2,'0');
 			conv.data.fecha = `${pad(dt.getDate())}-${pad(dt.getMonth()+1)}`;
+			conv.data.fecha_dow = dayNameEs(dt);
 			console.log(`[LOG] [${tenantId}] Guardando fecha para ${phone}: "${conv.data.fecha}"`);
 			const newState = { ...conv, stage: 'ask_obs' };
 			runtime.setState(tenantId, phone, newState);
@@ -1310,6 +1373,8 @@ if(conv.stage==='none'){
 			return null;
 		}
 		case 'confirm': {
+			// Marcar el último prompt (resumen + sí/no) como contestado para evitar reenvíos
+			try { await markLastPromptAnswered(tenantId, phone); } catch {}
 			const yes=/^(si|sí|s|ok|vale|confirmo)$/i.test(lower);
 			const no=/^(no|n)$/i.test(lower);
 			if(no){
@@ -1331,6 +1396,21 @@ if(conv.stage==='none'){
 				await sendPrompt(tenantId, client, msg.from, session, warn + '\n' + buildSizeQuestion(cfg), { bypassDebounce: true });
 				return null;
 			}
+			// Idempotencia: evitar doble "sí" que confirme dos veces
+			let sessNow = {};
+			try { sessNow = await convStore.readConv(tenantId, phone) || {}; } catch {}
+			if (sessNow.confirming) {
+				// Confirmación en curso: no duplicar
+				return null;
+			}
+			const confirmKey = buildConfirmKey(items, conv.data||{});
+			const lastKey = sessNow.lastConfirmedKey;
+			const lastAt = Number(sessNow.lastConfirmedAt||0);
+			if (lastKey && lastKey===confirmKey && (Date.now()-lastAt) < 20000) {
+				// Misma confirmación en ventana de 20s: ignorar
+				return null;
+			}
+			try { await convStore.writeConv(tenantId, phone, { ...sessNow, confirming:true }); } catch {}
 			const orders=require('./orderStore');
 			const payloadFields = { items, ...conv.data };
 			const total = items.reduce((acc,it)=>acc+(Number(it.total)||0),0);
@@ -1344,6 +1424,11 @@ if(conv.stage==='none'){
 			} else {
 				await orders.add(tenantId,{ customer:{ phone:conv.data.telefono }, fields: payloadFields, total });
 			}
+			// Persistir marca de confirmación para idempotencia
+			try {
+				const fresh = await convStore.readConv(tenantId, phone) || {};
+				await convStore.writeConv(tenantId, phone, { ...fresh, lastConfirmedAt: Date.now(), lastConfirmedKey: confirmKey, confirming: false });
+			} catch {}
 			const wasWelcomed=conv.welcomed,lastW=conv.lastWelcomeAt;
 			try { await saveSessionState(tenantId, phone, 'confirm'); } catch {}
 			runtime.setState(tenantId, phone,{stage:'none',data:{},welcomed:wasWelcomed,lastWelcomeAt:lastW});

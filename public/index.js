@@ -350,6 +350,9 @@ function startEvents(){
       const idx = CACHE.pending.findIndex(o=> String(o.id)===sid);
       if(idx>=0) CACHE.pending[idx] = ord; else CACHE.pending.push(ord);
       applyActiveFilter();
+      // Refresco de seguridad: reconsultar listas para evitar estados intermedios
+      // (p. ej. si llegan eventos fuera de orden)
+      renderPedidos().catch(()=>{});
     }catch{}
   });
   es.addEventListener('order_canceled', e=>{ try{ const d=JSON.parse(e.data||'{}'); if(d?.order){ moveToCanceled(d.order); } }catch{} });
