@@ -1,0 +1,4 @@
+2025/09/11-14:15:30.827 87c Creating DB C:\Users\samue\Desktop\proyectos\botnuevo\backend-bot\data\.wwebjs_auth\session-default\Default\Local Storage\leveldb since it was missing.
+2025/09/11-14:15:30.855 87c Reusing MANIFEST C:\Users\samue\Desktop\proyectos\botnuevo\backend-bot\data\.wwebjs_auth\session-default\Default\Local Storage\leveldb/MANIFEST-000001
+2025/09/11-14:15:30.856 87c Recovering log #3
+2025/09/11-14:15:30.856 87c Reusing old log C:\Users\samue\Desktop\proyectos\botnuevo\backend-bot\data\.wwebjs_auth\session-default\Default\Local Storage\leveldb/000003.log 

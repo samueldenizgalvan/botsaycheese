@@ -1,0 +1,99 @@
+{
+  "tenantId": "samuel",
+  "displayName": "Cheesecakes By Nestor",
+  "brand": "SayCheese By Nestor",
+  "address": "C. Abián, 4, 35212 Marpequeña, Las Palmas",
+  "mode": "pedidos",
+  "currency": "EUR",
+  "keywords": {
+    "menu": ["menu", "inicio", "hola"],
+    "order": ["pedido", "tarta", "pastel", "cheesecake"],
+    "delete": ["cancelar", "cancelar pedido", "anular pedido", "cancelar pedido"],
+    "where": ["donde estamos", "dirección", "direccion", "ubicacion", "ubicación", "mapa"]
+  },
+  "catalog": {
+    "flavors": ["Clásica", "Lotus", "Pistacho", "Oreo", "Nocilla", "Gofio", "Mango-Maracuyá", "Hippo"],
+    "sizes": [
+      { "id": "grande",  "label": "Grande (35€)",  "type": "entera",  "price": 35 },
+      { "id": "cajitas", "label": "Cajitas (12€)", "type": "cajitas", "price": 12 }
+    ]
+  },
+  "prices": { "grande": 35.0, "cajitas": 12.0 },
+  "messages": {
+    "welcome": "¡Hola! 👋 Soy el asistente de *SayCheese By Nestor*. Escribe *pedido* para empezar un pedido 🎂 o *menu* para ver opciones , atras para volver un paso atras o cancelar si te has equivocado 📋.",
+  "menu": "¿En qué te ayudo? 📋\n*1)* Generar pedido 🛒\n*2)* Cancelar un pedido ❌\n*3)* Modificar un pedido ✏️\n*4)* ¿Dónde estamos? 📍\n\n(Responde con el número ⌨️)",
+    "bad_option": "Mmm… no te entendí 🤖. Escribe *pedido* para empezar 🎂 o *menu* para ver opciones 📋.",
+
+    "ask_telefono": "Indica tu *teléfono* (9 dígitos) 📞:",
+    "ask_tamano": "Elige *tamaño* 📏:\n1) *Grande* (10–12 raciones, 1.5 Kg) – *35€*\n2) *Cajitas* (400 g) – *12€*\nResponde *1/2* o escribe *grande/cajitas*.",
+    "flavor_list": "Sabores 🍓:\n• Clásica 🍰\n• Lotus 🍪\n• Pistacho 🟢🥜\n• Oreo 🍪\n• Nocilla 🍫\n• Gofio 🌾\n• Mango-Maracuyá 🥭✨\n• Hippo 🦛🍫",
+    "ask_sabores": "¿Qué *sabores* quieres? 🍰✍️ (separa por comas si eliges más de uno o escríbelos en observaciones)\n\n",
+
+    "ask_qty_grande": "¿Cuántas *tartas grandes* quieres? (1–20) 🔢",
+    "ask_qty_cajitas": "¿Cuántas *cajitas* quieres? (1–50) 📦",
+    "ask_fecha": "¿*Día de recogida*? 📅 (DD/MM). *Mínimo 3 días* de antelación ⏳.",
+    "ask_observacion": "¿Alguna *observación*? 📝 (opcional; puedes escribir \"no\")",
+
+  "summary": "🧾 Pedido para {telefono}.\n• Tamaño: {tamano}\n• Sabores: {sabores}\n• Cantidad: {cantidad}\n• Recogida: {fecha}\n• Total aprox: *{total}€*\n\n¿Confirmas? (si/no) ✅❌",
+    "confirm_yesno": "👉 Responde *si* o *no*, por favor.",
+    "confirmed": "¡Listo! ✅ Hemos registrado tu pedido. Te avisaremos al recibirlo oficialmente 🙌.",
+    "canceled": "Entendido. Pedido cancelado ❌. ¡Gracias por avisar!",
+
+    "delete_intro": "De acuerdo 🗂️. Dime el *número de teléfono* del pedido que quieres *cancelar* (9 dígitos) 🔢.",
+    "delete_none": "No encontré pedidos *pendientes* con ese número 🔎.",
+    "delete_found": "He encontrado {count} pedido(s) *pendiente(s)* para el teléfono *{telefono}* ☎️. ¿Quieres cancelarlo(s)? (si/no)",
+    "delete_done": "¡Listo! Pedido(s) cancelado(s) ✅.",
+
+    "location": "Estamos en: *SayCheese By Néstor* 📍\nC. Abián, 4, 35212 Marpequeña, Las Palmas.\nCómo llegar 🗺️: {location_url}",
+    "location_url": "https://maps.google.com?q=SayCheese%20By%20Nestor%20C.%20Abi%C3%A1n%2C%204%2035212%20Marpeque%C3%B1a",
+
+    "ask_cantidad_entera": "¿Cuántas *tartas grandes* quieres? (1–20) 🔢",
+    "ask_cantidad_cajitas": "¿Cuántas *cajitas* quieres? (1–50) 📦",
+  "ask_obs": "¿Alguna *observación*? 📝 (opcional; puedes escribirla directamente o poner \"no\")",
+  "pickup_schedule": "Las porciones(4,5€) son sin reserva de Viernes a Domingo\n❗Horario semanal:\nJueves 11:00 / 13:00\nViernes 18:00/20:00\nSábado 11:00/13:30\nDomingo 11:00/13:30",
+    "ask_delete_phone": "Vale 🗂️. Dime el *número de teléfono* del pedido que quieres cancelar (9 dígitos) 🔢.",
+    "delete_not_found": "No encontré pedidos *pendientes* con ese número 🔎.",
+    "delete_found_confirm": "He encontrado {count} pedido(s) *pendiente(s)* para el teléfono *{telefono}* ☎️. ¿Quieres borrarlo(s)? (si/no)",
+    "delete_canceled": "Operación cancelada ✅.",
+    "show_address": "Nuestra dirección es:\n{{address}} 📍\n\n🗺️ Puedes buscarnos en Google Maps.",
+  "confirm": "🧾 Pedido para {telefono}. Tamaño: {tamano}. Cantidad: {cantidad}. Sabores: {sabores}. Recogida: {fecha}. Total aprox: {total}€.\n👉 ¿Confirmas? (sí/no)"
+  },
+  "options": {
+    "tamano": ["grande", "cajitas"],
+    "tamano_alias": { "1": "grande", "2": "cajitas", "tarta grande": "grande" },
+    "sabores": ["Clásica", "Lotus", "Pistacho", "Oreo", "Nocilla", "Gofio", "Mango-Maracuyá", "Hippo"],
+    "precios": { "grande": 35, "cajitas": 12 }
+  },
+  "flow": [
+    {
+      "id": "new_order",
+      "onKeywords": ["pedido", "1"],
+      "steps": [
+        { "ask": "ask_tamano",   "save": "tamano",   "validate": "tamano" },
+        {
+          "ask": "ask_sabores",
+          "save": "sabores",
+          "validate": { "multiOf": ["Clásica", "Lotus", "Pistacho", "Oreo", "Nocilla", "Gofio", "Mango-Maracuyá", "Hippo"] }
+        },
+        { "when": "tamano == grande",  "ask": "ask_qty_grande",  "save": "cantidad", "validate": { "numRange": [1, 20] } },
+        { "when": "tamano == cajitas", "ask": "ask_qty_cajitas", "save": "cantidad", "validate": { "numRange": [1, 100] } },
+        { "ask": "ask_fecha",       "save": "fecha",       "validate": "date_plus3" },
+        { "ask": "ask_observacion", "save": "observacion", "validate": "text_opt" }
+      ],
+      "summary": "summary",
+      "confirm": { "yes": ["si", "sí", "ok", "confirmo"], "no": ["no", "cancelar"] },
+      "onConfirmYes": "confirmed",
+      "onConfirmNo": "canceled",
+      "createRecord": true
+    },
+    { "id": "start",     "onKeywords": ["hola"], "reply": "welcome" },
+    { "id": "main_menu", "onKeywords": ["menu"], "reply": "menu" },
+    {
+      "id": "delete_by_phone",
+      "onKeywords": ["2", "cancelar", "borrar pedido", "cancelar pedido", "anular pedido"],
+      "steps": [{ "ask": "delete_intro", "save": "telefono_del", "validate": "phone" }],
+      "handler": "deleteByPhone"
+    },
+    { "id": "where", "onKeywords": ["3", "donde estamos", "dirección", "direccion", "ubicacion", "ubicación", "mapa"], "reply": "location" }
+  ]
+}

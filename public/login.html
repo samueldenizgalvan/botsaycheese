@@ -1,0 +1,67 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>SayCheese By Nestor | Acceso</title>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root{ --bg:#0f172a; --card:#111827; --muted:#94a3b8; --accent:#22d3ee; --danger:#ef4444; --ok:#22c55e; }
+    *{ box-sizing:border-box; font-family:Inter,system-ui,Arial; }
+    body{ margin:0; min-height:100vh; display:grid; place-items:center; background:linear-gradient(135deg,#0f172a,#1f2937); color:#e5e7eb; padding: env(safe-area-inset-top,0) env(safe-area-inset-right,0) env(safe-area-inset-bottom,0) env(safe-area-inset-left,0); }
+    .card{ width:min(440px,94vw); background:rgba(17,24,39,.9); border:1px solid #1f2937; border-radius:16px; padding:28px; box-shadow:0 10px 40px rgba(0,0,0,.35); backdrop-filter: blur(6px); }
+    h1{ margin:0 0 8px; font-size:1.4rem; }
+    p{ margin:.25rem 0 1.25rem; color:var(--muted); }
+    label{ display:block; font-size:.85rem; margin:.75rem 0 .4rem; color:#cbd5e1; }
+    input{ width:100%; padding:12px 14px; border-radius:10px; border:1px solid #243140; background:#0b1220; color:#e2e8f0; outline:none; }
+    input:focus{ border-color:var(--accent); box-shadow:0 0 0 3px rgba(34,211,238,.15); }
+    button{ width:100%; padding:12px 14px; margin-top:16px; border-radius:10px; border:none; background:linear-gradient(135deg,#06b6d4,#3b82f6); color:white; font-weight:700; cursor:pointer; }
+    .err{ color:var(--danger); margin-top:10px; min-height:1.2rem; }
+    .foot{ margin-top:14px; font-size:.8rem; color:var(--muted); text-align:center; }
+    @media (max-width: 480px){
+      .card{ width:92vw; padding:22px; }
+      h1{ font-size:1.25rem; }
+      label{ font-size:.8rem; }
+      button{ padding:12px; font-size:1rem; }
+    }
+  </style>
+  </head>
+<body>
+  <div class="card">
+  <h1>SayCheese By Nestor</h1>
+    <p>Inicia sesión para gestionar tus pedidos.</p>
+    <form id="f">
+      <label>Usuario</label>
+      <input id="u" autocomplete="username" required />
+      <label>Contraseña</label>
+      <input id="p" type="password" autocomplete="current-password" required />
+      <button type="submit">Entrar</button>
+      <div class="err" id="err"></div>
+    </form>
+    <div class="foot"><small id="login-footnote">© <span id="year"></span> SamuelDev — Todos los derechos reservados.</small></div>
+  </div>
+  <script>
+    const $ = sel => document.querySelector(sel);
+    $('#f').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      $('#err').textContent = '';
+      const username = $('#u').value.trim();
+      const password = $('#p').value.trim();
+      try{
+        const r = await fetch('/auth/login', {
+          method:'POST',
+          headers:{ 'Content-Type':'application/json' },
+          credentials:'same-origin',
+          body: JSON.stringify({ username, password })
+        });
+        if(!r.ok){ const {error} = await r.json(); throw new Error(error || 'Error de acceso'); }
+        location.href = '/index.html';
+      }catch(err){ $('#err').textContent = err.message; }
+    });
+  </script>
+  <script>
+    document.getElementById('year').textContent = new Date().getFullYear();
+  </script>
+</body>
+</html>

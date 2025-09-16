@@ -1,0 +1,9 @@
+{
+  "watch": ["."],
+  "ext": "js,json",
+  "ignore": [
+    "data/**/sessions/**",
+    "data/**/.wwebjs_cache/**",
+    "public/*.css.map"
+  ]
+}

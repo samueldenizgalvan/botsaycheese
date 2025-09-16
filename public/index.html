@@ -1,0 +1,87 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
+  <title>SayCheese By Nestor · Panel</title>
+  <link rel="stylesheet" href="/public/styles.css" />
+</head>
+<body class="mobile-app">
+  <header class="app-header">
+    <div class="brand">
+      <span class="logo-dot"></span>
+      <span id="brandText">SayCheese By Nestor</span>
+    </div>
+    <div class="header-right">
+      <span id="clock" class="pill"></span>
+      <span id="botStatus" class="pill status">unknown</span>
+      <button id="btnLogout" class="btn btn-danger">Salir</button>
+    </div>
+  </header>
+
+  <main class="app-main">
+    <section class="toolbar">
+      <button id="btnStart" class="btn">Iniciar Bot</button>
+      <button id="btnRelink" class="btn">Vincular nueva cuenta</button>
+      <!-- QR oculto -->
+      <!-- <button id="btnShowQr" class="btn">Ver QR</button> -->
+      <div class="searchbar" role="search">
+        <span class="icon" aria-hidden="true">🔎</span>
+        <input id="phoneFilter" class="search-input" type="search" inputmode="numeric" pattern="[0-9]*" placeholder="Filtrar por teléfono…" aria-label="Filtrar por teléfono" />
+        <button id="clearFilter" class="clear-btn" title="Limpiar">✕</button>
+      </div>
+    </section>
+
+    <section class="tabs-container">
+      <div id="panel-pendientes" class="panel active" data-name="pendientes">
+        <div id="list-pendientes" class="card-list"></div>
+        <div id="empty-pendientes" class="empty">No hay pedidos pendientes.</div>
+      </div>
+
+      <div id="panel-confirmados" class="panel" data-name="confirmados">
+        <div id="list-confirmados" class="card-list"></div>
+        <div id="empty-confirmados" class="empty">No hay pedidos confirmados.</div>
+      </div>
+
+      <div id="panel-cancelados" class="panel" data-name="cancelados">
+        <div id="list-cancelados" class="card-list"></div>
+        <div id="empty-cancelados" class="empty">No hay pedidos cancelados.</div>
+      </div>
+    </section>
+  </main>
+
+  <nav class="tabbar">
+    <button class="tab active" data-target="pendientes">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 6h18v2H3zM3 11h18v2H3zM3 16h18v2H3z"/></svg>
+      <span>Pendientes</span>
+    </button>
+    <button class="tab" data-target="confirmados">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 16.2l-3.5-3.5 1.4-1.4L9 13.4l7.1-7.1 1.4 1.4z"/></svg>
+      <span>Confirmados</span>
+    </button>
+    <button class="tab" data-target="cancelados">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6h12l-1 14H7L6 6zm3-2h6l1 2H8l1-2z"/></svg>
+      <span>Cancelados</span>
+    </button>
+  </nav>
+
+  <!-- Modal QR -->
+  <!-- Modal QR oculto -->
+  <!--
+  <div id="modal-qr" class="modal">
+    <div class="modal-content">
+      <h3>Vincular WhatsApp</h3>
+      <img id="qrImage" alt="QR" />
+      <p id="qrStatus">Esperando QR…</p>
+      <button id="btnCloseQr" class="btn">Cerrar</button>
+    </div>
+  </div>
+  -->
+
+  <!-- Toast -->
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+
+  <script src="/socket.io/socket.io.js" defer></script>
+  <script src="/public/index.js" defer></script>
+</body>
+</html>

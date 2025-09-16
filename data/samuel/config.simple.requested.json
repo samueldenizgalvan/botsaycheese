@@ -1,0 +1,15 @@
+{
+  "brand": "Cheesecakes Samuel",
+  "keywords": {
+    "menu": ["menu", "inicio", "hola"],
+    "order": ["pedido", "tarta", "pastel", "cheesecake"],
+    "cancel": ["cancelar", "anular"]
+  },
+  "sizes": {
+    "grande": 35,
+    "cajitas": 12,
+    "porciones": 4.5
+  },
+  "flavors": ["Clásica", "Lotus", "Pistacho", "Oreo", "Nocilla", "Gofio", "Mango-Maracuyá"],
+  "askAgainHours": 5
+}
