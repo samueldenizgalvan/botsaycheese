@@ -330,7 +330,28 @@ function startEvents(){
   es.addEventListener('open', async ()=>{ await renderPedidos(); });
   es.addEventListener('order:changed', async ()=>{ await renderPedidos(); });
   es.addEventListener('bot:status', e=>{ try{ const d=JSON.parse(e.data); renderStatus(d); }catch{} });
-  es.addEventListener('order_created', e=>{ try{ const d=JSON.parse(e.data||'{}'); if(d?.order){ CACHE.pending.push(d.order); applyActiveFilter(); } }catch{} });
+  es.addEventListener('order_created', e=>{
+    try{
+      const d = JSON.parse(e.data||'{}');
+      const ord = d?.order;
+      if(!ord) return;
+      // Si este nuevo pedido reemplaza a otro, elimínalo de cachés y UI inmediatamente
+      if(ord.replaces){
+        const rid = String(ord.replaces);
+        CACHE.pending = CACHE.pending.filter(o=> String(o.id)!==rid);
+        CACHE.confirmed = CACHE.confirmed.filter(o=> String(o.id)!==rid);
+        removeCard(rid);
+      }
+      // Dedupe: elimina cualquier rastro previo del id en caches y luego inserta/actualiza en pending
+      const sid = String(ord.id);
+      CACHE.pending = CACHE.pending.filter(o=> String(o.id)!==sid);
+      CACHE.confirmed = CACHE.confirmed.filter(o=> String(o.id)!==sid);
+      CACHE.canceled = CACHE.canceled.filter(o=> String(o.id)!==sid);
+      const idx = CACHE.pending.findIndex(o=> String(o.id)===sid);
+      if(idx>=0) CACHE.pending[idx] = ord; else CACHE.pending.push(ord);
+      applyActiveFilter();
+    }catch{}
+  });
   es.addEventListener('order_canceled', e=>{ try{ const d=JSON.parse(e.data||'{}'); if(d?.order){ moveToCanceled(d.order); } }catch{} });
   es.addEventListener('order_confirmed', e=>{ try{ const d=JSON.parse(e.data||'{}'); if(d?.order){ moveToConfirmed(d.order); toast('Pedido confirmado ✅','ok'); } }catch{} });
   es.addEventListener('error', ()=>{ try{ es.close(); }catch{}; setTimeout(startEvents, 2500); });
@@ -430,6 +451,7 @@ function wireButtons(){
   }; }
   const btnRelink=$id('btnRelink'); if(btnRelink){ btnRelink.onclick=async ()=>{ if(btnRelink.disabled||relinkInProgress) return; if(!confirm('Esto desconectará la cuenta actual y borrará la sesión. ¿Continuar?')) return; btnRelink.disabled=true; try{ await startRelinkFlow(); } finally { btnRelink.disabled=false; } }; }
   // QR oculto: sin wiring
+  const btnCloseQr=$id('btnCloseQr'); if(btnCloseQr){ btnCloseQr.onclick=()=> closeQrModal(); }
   const btnLogout=$id('btnLogout'); if(btnLogout){ btnLogout.onclick=()=>{ location.href='/login.html?logout=1'; }; }
   // Filtro único por teléfono (aplica a la pestaña activa)
   const input=$id('phoneFilter'); const clearBtn=$id('clearFilter');

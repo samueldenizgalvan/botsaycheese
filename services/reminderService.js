@@ -2,77 +2,22 @@
 const { getConfigForTenant } = (()=>{ try { return require('./configService'); } catch { return {}; } })();
 const store = require('./orderStore');
 const wa = (()=>{ try { return require('./whatsappService'); } catch { return null; } })();
+const {
+  atStartOfDay,
+  parseDDMMYYYY,
+  isTomorrow,
+  todayKey,
+  normalizePhoneToJid,
+  calcTotal,
+  buildReminderText,
+} = require('./_reminderUtils');
 
-// Utilidades fecha
-function parseDDMMYYYY(s) {
-  if (!s) return null;
-  const norm = String(s).trim().replace(/[\/]/g, '-');
-  const parts = norm.split('-').filter(Boolean);
-  const today = atStartOfDay(new Date());
-  const pad = (n)=>String(n).padStart(2,'0');
-  const diffDays = (a,b)=> Math.round((atStartOfDay(a) - atStartOfDay(b)) / 86400000);
-  if (parts.length === 3) {
-    const [dd, mm, yyyy] = parts.map(Number);
-    const d = new Date(yyyy, (mm||1)-1, dd||1);
-    return isNaN(d) ? null : d;
-  }
-  if (parts.length === 2) {
-    const [dd, mm] = parts.map(Number);
-    let d = new Date(today.getFullYear(), (mm||1)-1, dd||1);
-    if (isNaN(d)) return null;
-    // If date seems far in the past (e.g., 01-01 while today is 31-12), roll to next year
-    if (diffDays(d, today) < -200) {
-      d = new Date(today.getFullYear()+1, (mm||1)-1, dd||1);
-    }
-    return d;
-  }
-  return null;
-}
-function atStartOfDay(d) { const x = new Date(d); x.setHours(0,0,0,0); return x; }
-function isTomorrow(date) {
-  const today = atStartOfDay(new Date());
-  const target = atStartOfDay(date);
-  const diff = Math.round((target - today) / 86400000);
-  return diff === 1;
-}
-function todayKey() { const d = atStartOfDay(new Date()); const pad=n=>String(n).padStart(2,'0'); return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`; }
-
-function normalizePhoneToJid(phone) {
-  const digitsRaw = String(phone || '').replace(/\D/g, '');
-  if (!digitsRaw) return null;
-  // Default to Spain country code if a 9-digit local number is provided
-  const digits = digitsRaw.length === 9 ? ('34' + digitsRaw) : digitsRaw;
-  return `${digits}@c.us`;
-}
-
-function calcTotal(cfg, tamano, cantidad) {
-  const precios = cfg?.options?.precios || {};
-  const p = precios[tamano] || 0;
-  return Math.round((p * (Number(cantidad)||0)) * 100) / 100;
-}
-
-// Construye el texto dulce
-function buildReminderText(cfg, order) {
-  const nombre  = '';
-  const tamano  = order?.fields?.tamano;
-  const sabores = (order?.fields?.sabores || []).join(', ');
-  const cantidad= order?.fields?.cantidad || order?.fields?.porciones || order?.fields?.unidades || 1;
-  const fecha   = order?.fields?.fecha;
-  const total   = order?.total || calcTotal(cfg, tamano, cantidad);
-  return `¡Hola! 😊
-Te recordamos tu pedido para *mañana* (${fecha}) en *SayCheese By Nestor*.
-
-• Tamaño: *${tamano}*
-• Cantidad: *${cantidad}*
-• Sabores: *${sabores || '—'}*
-• Total aprox: *${total}€*
-
-📍 C. Abián, 4, 35212 Marpequeña, Las Palmas
-🕒 Recogida 11:00–13:00
-Si necesitas cambiar algo, respóndeme por aquí.
-¡Gracias por elegirnos! 🧀💛`;
-}
-
+/**
+ * Send WhatsApp reminders for orders scheduled for tomorrow.
+ * Keeps exact user-facing strings. No behavior change.
+ * @param {string} tenantId
+ * @returns {Promise<void>}
+ */
 async function sendTomorrowReminders(tenantId) {
   // Config: prefer configService, fallback to file
   let cfg = null;

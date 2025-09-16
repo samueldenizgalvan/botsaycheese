@@ -1,3 +1,4 @@
+// INVARIANTE: mismos strings de salida
 // Cancela pedidos por teléfono y responde siempre al usuario
 async function cancelByPhoneAndReply(tenantId, client, chatId, phone, cfg) {
 	const msgs = cfg.messages || {};
@@ -5,11 +6,7 @@ async function cancelByPhoneAndReply(tenantId, client, chatId, phone, cfg) {
 	if (!matches || matches.length === 0) {
 		const preview = (msgs.no_pedidos || 'No hay pedidos pendientes con ese número.').slice(0, 80);
 		console.log('[SEND]', phone, preview);
-		try {
-			await client.sendMessage(chatId, msgs.no_pedidos || 'No hay pedidos pendientes con ese número.');
-		} catch (e) {
-			console.error('[SEND][ERROR]', e && e.message);
-		}
+		await sendSafe(client, chatId, msgs.no_pedidos || 'No hay pedidos pendientes con ese número.');
 		return;
 	}
 	for (const m of matches) {
@@ -18,11 +15,7 @@ async function cancelByPhoneAndReply(tenantId, client, chatId, phone, cfg) {
 	{
 		const preview = (msgs.cancelados_ok || 'Pedido(s) cancelado(s).').slice(0, 80);
 		console.log('[SEND]', phone, preview);
-		try {
-			await client.sendMessage(chatId, msgs.cancelados_ok || 'Pedido(s) cancelado(s).');
-		} catch (e) {
-			console.error('[SEND][ERROR]', e && e.message);
-		}
+		await sendSafe(client, chatId, msgs.cancelados_ok || 'Pedido(s) cancelado(s).');
 	}
 }
 // Centraliza el envío de prompts con antirrebote y persistencia
@@ -35,11 +28,7 @@ async function sendPrompt(tenantId, client, to, session, text, options = {}) {
 	await setLastPrompt(tenantId, String(to).replace(/@.*/, ''), text);
 	const preview = String(text).slice(0, 80);
 	console.log('[SEND]', to, preview);
-	try {
-		await client.sendMessage(to, String(text));
-	} catch (e) {
-		console.error('[SEND][ERROR]', e && e.message);
-	}
+	await sendSafe(client, to, String(text));
 }
 // Carga robusta de sesión
 async function loadSessionState(tenantId, phone) {
@@ -102,6 +91,18 @@ const loggedTenants = new Set();           // avoid repeating console log
 // Helpers
 const norm = s => (s||'').toString().trim().toLowerCase();
 const isPhone9 = s => /^\d{9}$/.test(String(s).trim());
+
+// INVARIANTE: mismos strings de salida
+async function sendSafe(client, to, text){
+	try { await client.sendMessage(to, String(text)); }
+	catch(e){ console.error('[SEND][ERROR]', e && e.message); }
+}
+
+// Devuelve el menú corto estándar según cfg, sin alterar textos
+function replyMenu(cfg){
+	const msgs = (cfg && cfg.messages) || {};
+	return String(msgs.menu_short || '1) Generar pedido\n2) Cancelar un pedido\n3) Modificar un pedido\n4) ¿Dónde estamos?');
+}
 
 // Prompt debounce helpers (30s window)
 function shouldSkipPromptDueToDebounce(session, promptText){
@@ -525,20 +526,12 @@ async function sendWelcomeAndMenu(client, chatId, cfg){
 	{
 		const preview = String(welcome).slice(0, 80);
 		console.log('[SEND]', chatId, preview);
-		try {
-			await client.sendMessage(chatId, String(welcome));
-		} catch (e) {
-			console.error('[SEND][ERROR]', e && e.message);
-		}
+		await sendSafe(client, chatId, String(welcome));
 	}
 	{
 		const preview = String(menu).slice(0, 80);
 		console.log('[SEND]', chatId, preview);
-		try {
-			await client.sendMessage(chatId, String(menu));
-		} catch (e) {
-			console.error('[SEND][ERROR]', e && e.message);
-		}
+		await sendSafe(client, chatId, String(menu));
 	}
 }
 
@@ -625,7 +618,7 @@ async function manejarMensajeTenant(a, b, c){
 
 		// Manual: "cancelar <telefono>" / "anular <telefono>" / "borrar <telefono>"
 		const manualCancel = /^\s*(cancel(?:ar)?|anular|borrar)\s+([^]+)$/i.exec(text || '');
-		if(manualCancel){
+			if(manualCancel){
 			const raw = manualCancel[2] || '';
 			const digits = raw.replace(/\D/g,'');
 			const tel9 = digits.slice(-9);
@@ -634,7 +627,7 @@ async function manejarMensajeTenant(a, b, c){
 				{
 					const preview = String(txt).slice(0,80);
 					console.log('[SEND]', phone, preview);
-					try { await client.sendMessage(msg.from, String(txt)); } catch(e){ console.error('[SEND][ERROR]', e && e.message); }
+					await sendSafe(client, msg.from, String(txt));
 				}
 				return null;
 			}
@@ -645,7 +638,7 @@ async function manejarMensajeTenant(a, b, c){
 				{
 					const preview = String(txt).slice(0,80);
 					console.log('[SEND]', phone, preview);
-					try { await client.sendMessage(msg.from, String(txt)); } catch(e){ console.error('[SEND][ERROR]', e && e.message); }
+					await sendSafe(client, msg.from, String(txt));
 				}
 				// Volver a menú
 						try { await convStore.writeConv(tenantId, phone, {}); } catch{}
@@ -670,7 +663,7 @@ async function manejarMensajeTenant(a, b, c){
 			{
 				const preview = String(out).slice(0,80);
 				console.log('[SEND]', phone, preview);
-				try { await client.sendMessage(msg.from, out); } catch(e){ console.error('[SEND][ERROR]', e && e.message); }
+				await sendSafe(client, msg.from, out);
 			}
 			return null;
 		}
@@ -679,13 +672,10 @@ async function manejarMensajeTenant(a, b, c){
 		if (isMenuKeyword || (inFlow && greetKeywords.has(lower))){
 			if(inFlow){
 			{
-				const preview = String(msgs.menu_short || '1) Generar pedido\n2) Cancelar un pedido\n3) Modificar un pedido\n4) ¿Dónde estamos?').slice(0, 80);
+				const menuShort = replyMenu(cfg);
+				const preview = String(menuShort).slice(0, 80);
 				console.log('[SEND]', phone, preview);
-				try {
-					await client.sendMessage(msg.from, String(msgs.menu_short || '1) Generar pedido\n2) Cancelar un pedido\n3) Modificar un pedido\n4) ¿Dónde estamos?'));
-				} catch (e) {
-					console.error('[SEND][ERROR]', e && e.message);
-				}
+				await sendSafe(client, msg.from, menuShort);
 			}
 				return null;
 			}
@@ -719,23 +709,17 @@ async function manejarMensajeTenant(a, b, c){
 					try {
 						const res = await orderStore.moveToCanceled(tenantId, menuState.del_list);
 						{
-							const preview = String(msgs.delete_done || 'Pedido(s) borrado(s).').slice(0, 80);
+							const txt = msgs.delete_done || 'Pedido(s) borrado(s).';
+							const preview = String(txt).slice(0, 80);
 							console.log('[SEND]', phone, preview);
-							try {
-								await client.sendMessage(msg.from, msgs.delete_done || 'Pedido(s) borrado(s).');
-							} catch (e) {
-								console.error('[SEND][ERROR]', e && e.message);
-							}
+							await sendSafe(client, msg.from, txt);
 						}
 					} catch {
 						{
-							const preview = 'No se pudo cancelar. Intenta más tarde.';
+							const txt = 'No se pudo cancelar. Intenta más tarde.';
+							const preview = String(txt).slice(0, 80);
 							console.log('[SEND]', phone, preview);
-							try {
-								await client.sendMessage(msg.from, 'No se pudo cancelar. Intenta más tarde.');
-							} catch (e) {
-								console.error('[SEND][ERROR]', e && e.message);
-							}
+							await sendSafe(client, msg.from, txt);
 						}
 					}
 					// clear temp and return to start
@@ -748,7 +732,7 @@ async function manejarMensajeTenant(a, b, c){
 					{
 						const preview = String(abortMsg).slice(0, 80);
 						console.log('[SEND]', phone, preview);
-						try { await client.sendMessage(msg.from, abortMsg); } catch (e) { console.error('[SEND][ERROR]', e && e.message); }
+						await sendSafe(client, msg.from, abortMsg);
 					}
 					try { await convStore.writeConv(tenantId, phone, {}); } catch {}
 					try { runtime.setState(tenantId, phone, { stage:'none', data:{}, flow:'none', welcomed:conv.welcomed, lastWelcomeAt:conv.lastWelcomeAt }); } catch {}
@@ -763,11 +747,7 @@ async function manejarMensajeTenant(a, b, c){
 				{
 					const preview = String(msgs.confirm_yesno || 'Responde sí o no, por favor.').slice(0, 80);
 					console.log('[SEND]', phone, preview);
-					try {
-						await client.sendMessage(msg.from, msgs.confirm_yesno || 'Responde sí o no, por favor.');
-					} catch (e) {
-						console.error('[SEND][ERROR]', e && e.message);
-					}
+					await sendSafe(client, msg.from, msgs.confirm_yesno || 'Responde sí o no, por favor.');
 				}
 				return null;
 			}
@@ -777,13 +757,10 @@ async function manejarMensajeTenant(a, b, c){
 				try { await convStore.writeConv(tenantId, phone, {}); } catch {}
 				try { runtime.setState(tenantId, phone, { stage:'none', data:{}, flow:'none', welcomed: conv.welcomed, lastWelcomeAt: conv.lastWelcomeAt }); } catch {}
 				{
-					const preview = String(msgs.canceled || 'Operación cancelada.').slice(0, 80);
+					const txt = msgs.canceled || 'Operación cancelada.';
+					const preview = String(txt).slice(0, 80);
 					console.log('[SEND]', phone, preview);
-					try {
-						await client.sendMessage(msg.from, msgs.canceled || 'Operación cancelada.');
-					} catch (e) {
-						console.error('[SEND][ERROR]', e && e.message);
-					}
+					await sendSafe(client, msg.from, txt);
 				}
 				return null;
 			}
@@ -795,13 +772,10 @@ async function manejarMensajeTenant(a, b, c){
 			}
 			if(/^(atrás|atras)$/i.test(low)){
 				{
-					const preview = String(msgs.ask_delete_phone || 'Dime el número de teléfono (9 dígitos) del pedido a cancelar.').slice(0, 80);
+					const txt = msgs.ask_delete_phone || 'Dime el número de teléfono (9 dígitos) del pedido a cancelar.';
+					const preview = String(txt).slice(0, 80);
 					console.log('[SEND]', phone, preview);
-					try {
-						await client.sendMessage(msg.from, msgs.ask_delete_phone || 'Dime el número de teléfono (9 dígitos) del pedido a cancelar.');
-					} catch (e) {
-						console.error('[SEND][ERROR]', e && e.message);
-					}
+					await sendSafe(client, msg.from, txt);
 				}
 				return null;
 			}
@@ -809,13 +783,10 @@ async function manejarMensajeTenant(a, b, c){
 			// Else, we expect the phone input here
 			if(!/^\d{9}$/.test(lower)){
 				{
-					const preview = String(msgs.invalid_phone || 'Formato de teléfono inválido. Deben ser 9 dígitos.').slice(0, 80);
+					const txt = msgs.invalid_phone || 'Formato de teléfono inválido. Deben ser 9 dígitos.';
+					const preview = String(txt).slice(0, 80);
 					console.log('[SEND]', phone, preview);
-					try {
-						await client.sendMessage(msg.from, msgs.invalid_phone || 'Formato de teléfono inválido. Deben ser 9 dígitos.');
-					} catch (e) {
-						console.error('[SEND][ERROR]', e && e.message);
-					}
+					await sendSafe(client, msg.from, txt);
 				}
 				return null;
 			}
@@ -824,9 +795,9 @@ async function manejarMensajeTenant(a, b, c){
 						if(!matches || matches.length === 0){
 								const txt = msgs.no_pedidos_para_telefono || 'No hay pedidos pendientes para ese teléfono.';
 								{
-										const preview = String(txt).slice(0,80);
-										console.log('[SEND]', phone, preview);
-										try { await client.sendMessage(msg.from, String(txt)); } catch(e){ console.error('[SEND][ERROR]', e && e.message); }
+									const preview = String(txt).slice(0,80);
+									console.log('[SEND]', phone, preview);
+									await sendSafe(client, msg.from, String(txt));
 								}
 								// Reset a idle y mostrar menú para continuar
 								try {
@@ -858,11 +829,11 @@ async function manejarMensajeTenant(a, b, c){
 			const blocks = matches.map(o=>`Pedido ID ${o.id}\n${summarizeStoredOrder(o)}`);
 			const tail = msgs.delete_confirm || '¿Este es tu pedido? ¿Seguro que quieres cancelar? (sí/no)';
 			const out = [headerBase, ...blocks, tail].join('\n\n');
-			{
-				const preview = String(out).slice(0,80);
-				console.log('[SEND]', phone, preview);
-				try { await client.sendMessage(msg.from, out); } catch(e){ console.error('[SEND][ERROR]', e && e.message); }
-			}
+								{
+									const preview = String(out).slice(0,80);
+									console.log('[SEND]', phone, preview);
+									await sendSafe(client, msg.from, out);
+								}
 			return null;
 		}
 
@@ -882,11 +853,7 @@ async function manejarMensajeTenant(a, b, c){
 			{
 				const preview = String(prompt).slice(0, 80);
 				console.log('[SEND]', phone, preview);
-				try {
-					await client.sendMessage(msg.from, String(prompt));
-				} catch (e) {
-					console.error('[SEND][ERROR]', e && e.message);
-				}
+				await sendSafe(client, msg.from, String(prompt));
 			}
 			return null;
 		}
@@ -938,7 +905,7 @@ async function manejarMensajeTenant(a, b, c){
 									{
 										const preview = String(txt).slice(0,80);
 										console.log('[SEND]', phone, preview);
-										try { await client.sendMessage(msg.from, String(txt)); } catch(e){ console.error('[SEND][ERROR]', e && e.message); }
+										await sendSafe(client, msg.from, String(txt));
 									}
 									// back to idle + menu
 									try { await convStore.writeConv(tenantId, phone, {}); } catch{}
@@ -963,22 +930,18 @@ async function manejarMensajeTenant(a, b, c){
 								{
 									const preview = String(out).slice(0,80);
 									console.log('[SEND]', phone, preview);
-									try { await client.sendMessage(msg.from, out); } catch(e){ console.error('[SEND][ERROR]', e && e.message); }
+									await sendSafe(client, msg.from, out);
 								}
 								return null;
 			}
 
 		if(isIdle && ['4','donde','dónde','direccion','dirección','ubicacion','ubicación','mapa','maps'].includes(lower)){
 				const address = cfg.address || 'C. Abián, 4, 35212 Marpequeña, Las Palmas';
-				const txt = (msgs.address || address || 'Dirección no configurada 📍');
+				const txt = msgs.address || address || 'Dirección no configurada 📍';
 				{
 					const preview = String(txt).slice(0, 80);
 					console.log('[SEND]', phone, preview);
-					try {
-						await client.sendMessage(msg.from, String(txt));
-					} catch (e) {
-						console.error('[SEND][ERROR]', e && e.message);
-					}
+					await sendSafe(client, msg.from, String(txt));
 				}
 			// Flow marker (informational)
 			try { runtime.setState(tenantId, phone, { ...conv, flow: 'where' }); } catch{}
@@ -992,7 +955,7 @@ async function manejarMensajeTenant(a, b, c){
 			{
 				const preview = String(txt).slice(0, 80);
 				console.log('[SEND]', phone, preview);
-				try { await client.sendMessage(msg.from, String(txt)); } catch(e){ console.error('[SEND][ERROR]', e && e.message); }
+				await sendSafe(client, msg.from, String(txt));
 			}
 			try { runtime.setState(tenantId, phone, { ...conv, flow: 'review' }); } catch{}
 			return null;
@@ -1145,7 +1108,7 @@ if(conv.stage==='none'){
 			return 'Solo podemos modificar pedidos con al menos 3 días de antelación a la recogida.';
 		}
 		// Announce restart once
-		await client.sendMessage(msg.from, 'Perfecto 👍 Empezamos un pedido nuevo a partir del anterior. Indica de nuevo lo que quieres.');
+		await sendSafe(client, msg.from, 'Perfecto 👍 Empezamos un pedido nuevo a partir del anterior. Indica de nuevo lo que quieres.');
 		// Store target id and phone, then move to ask_size
 		const st = runtime.getState(tenantId, phone) || { stage:'none', data:{} };
 		st.modifyTargetId = String(existing.id);
