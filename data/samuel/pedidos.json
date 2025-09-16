@@ -2,7 +2,7 @@
   {
     "id": "1",
     "status": "canceled",
-    "createdAt": 1758043725568,
+    "createdAt": 1758037872899,
     "customer": {
       "phone": "657826485"
     },
@@ -12,82 +12,105 @@
           "tamano": "grande",
           "label": "Grande (35€)",
           "type": "entera",
-          "cantidad": 2,
+          "cantidad": 4,
           "sabores": [
-            "Caramelo Salado"
+            "Hippo"
           ],
-          "fecha": "24-09",
-          "observacion": "si",
+          "fecha": "20-09",
+          "observacion": "",
           "precioUnit": 35,
-          "total": 70
+          "total": 140
         }
       ],
       "telefono": "657826485",
       "tamano": "grande",
       "sabores": [
-        "Caramelo Salado"
+        "Hippo"
       ],
-      "cantidad": 2,
-      "fecha": "24-09",
-      "fecha_dow": "Miércoles",
-      "observacion": "si"
+      "cantidad": 4,
+      "fecha": "20-09",
+      "observacion": ""
     },
-    "total": 70,
-    "confirmedAt": 1758043751066,
-    "canceledAt": 1758043860788,
+    "total": 140,
+    "confirmedAt": 1758037900949,
+    "canceledAt": 1758037938898,
     "replacedBy": "2"
   },
   {
     "id": "2",
-    "status": "confirmed",
-    "createdAt": 1758043860788,
+    "status": "pending",
+    "createdAt": 1758037938898,
     "customer": {
       "phone": "657826485"
     },
     "fields": {
       "items": [
         {
+          "tamano": "grande",
+          "label": "Grande (35€)",
+          "type": "entera",
+          "cantidad": 4,
+          "sabores": [
+            "Hippo"
+          ],
+          "fecha": "20-09",
+          "observacion": "",
+          "precioUnit": 35,
+          "total": 140
+        },
+        {
           "tamano": "cajitas",
           "label": "Cajitas (12€)",
           "type": "cajitas",
-          "cantidad": 1,
+          "cantidad": 50,
           "sabores": [
-            "Pistacho"
+            "Gofio"
           ],
-          "fecha": "05-10",
-          "observacion": "si",
+          "fecha": "25-09",
+          "observacion": "",
           "precioUnit": 12,
-          "total": 12
+          "total": 600
         }
       ],
       "telefono": "657826485",
       "tamano": "cajitas",
       "sabores": [
-        "Pistacho"
+        "Gofio"
       ],
-      "cantidad": 1,
-      "fecha": "05-10",
-      "fecha_dow": "Domingo",
-      "observacion": "si"
+      "cantidad": 50,
+      "fecha": "25-09",
+      "observacion": ""
     },
     "items": [
+      {
+        "tamano": "grande",
+        "label": "Grande (35€)",
+        "type": "entera",
+        "cantidad": 4,
+        "sabores": [
+          "Hippo"
+        ],
+        "fecha": "20-09",
+        "observacion": "",
+        "precioUnit": 35,
+        "total": 140
+      },
       {
         "tamano": "cajitas",
         "label": "Cajitas (12€)",
         "type": "cajitas",
-        "cantidad": 1,
+        "cantidad": 50,
         "sabores": [
-          "Pistacho"
+          "Gofio"
         ],
-        "fecha": "05-10",
-        "observacion": "si",
+        "fecha": "25-09",
+        "observacion": "",
         "precioUnit": 12,
-        "total": 12
+        "total": 600
       }
     ],
-    "total": 12,
+    "total": 740,
     "modified": true,
-    "replaces": "1",
-    "confirmedAt": 1758044167814
+    "replaces": "1"
   }
 ]
