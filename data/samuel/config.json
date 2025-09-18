@@ -20,29 +20,31 @@
   },
   "prices": { "grande": 35.0, "cajitas": 12.0 },
   "messages": {
-    "welcome": "¡Hola! 👋 Soy el asistente de *SayCheese By Nestor*. Escribe *pedido* para empezar un pedido 🎂 o *menu* para ver opciones , atras para volver un paso atras o cancelar si te has equivocado 📋.",
-  "menu": "¿En qué te ayudo? 📋\n*1)* Generar pedido 🛒\n*2)* Cancelar un pedido ❌\n*3)* Modificar un pedido ✏️\n*4)* ¿Dónde estamos? 📍\n\n(Responde con el número ⌨️)",
+    "welcome": "¡Hola! 👋 Soy el asistente de *SayCheese By Nestor*.\n\n👉Puedes escribir *menu* en cualquier momento para volver al inicio.\n👉 *atras* Para retroceder o *cancelar* Para cancelar algún proceso ✅.",
+    "menu": "Menú principal 📋\n👉 *1)* Hacer pedido 🛒\n👉 *2)* Cancelar pedido ❌\n👉 *3)* Modificar pedido ✏️\n👉 *4)* Dirección 📍\n\n(Responde con el número)",
     "bad_option": "Mmm… no te entendí 🤖. Escribe *pedido* para empezar 🎂 o *menu* para ver opciones 📋.",
 
     "ask_telefono": "Indica tu *teléfono* (9 dígitos) 📞:",
     "ask_tamano": "Elige *tamaño* 📏:\n1) *Grande* (10–12 raciones, 1.5 Kg) – *35€*\n2) *Cajitas* (400 g) – *12€*\nResponde *1/2* o escribe *grande/cajitas*.",
-  "flavor_list": "Sabores 🤤:\n• Clásica 🍰\n• Lotus 🍪\n• Pistacho 🟢\n• Oreo 🔵\n• Nocilla 🍫\n• Gofio 🌾\n• Mango-Maracuyá 🥭\n• Hippo 🦛\n• Caramelo Salado 🦅\nUsa solo los de la lista mostrada",
-    "ask_sabores": "¿Qué *sabores* quieres? 🍰✍️ (separa por comas si eliges más de uno o escríbelos en observaciones)\n\n",
+    "flavor_list": "Sabores 🤤:\n• Clásica 🍰\n• Lotus 🍪\n• Pistacho 🟢\n• Oreo 🔵\n• Nocilla 🍫\n• Gofio 🌾\n• Mango-Maracuyá 🥭\n• Hippo 🦛\n• Caramelo Salado 🦅\nUsa solo los de la lista mostrada",
+    "ask_sabores": "👉 Dime qué *sabores* quieres 🍰.\n\n✅ Puedes elegir uno o varios.\n✅ Solo escribe cuántos quieres de cada sabor.\n\n📌 Ejemplos:\n- 1 clásica 2 oreo 3 mango (sin comas)🥭\n- 1 lotus 🍪\n- 2 Oreo 3 Pistacho 1 Lotus \n\nSabores disponibles:\n• Clásica 🍰\n• Lotus 🍪\n• Pistacho 🟢\n• Oreo 🔵\n• Nocilla 🍫\n• Gofio 🌾\n• Mango-Maracuyá 🥭\n• Hippo 🦛\n• Caramelo Salado 🦅\n\n✍️ Escribe la cantidad seguida del nombre del sabor.",
+    "porciones_info": "Las porciones (4,5€) son sin reserva de Viernes a Domingo.",
+    "horario_info": "Horario semanal:\nJueves 11:00 / 13:00\nViernes 18:00/20:00\nSábado 11:00/13:30\nDomingo 11:00/13:30",
 
     "ask_qty_grande": "¿Cuántas *tartas grandes* quieres? (1–20) 🔢",
     "ask_qty_cajitas": "¿Cuántas *cajitas* quieres? (1–50) 📦",
     "ask_fecha": "¿*Día de recogida*? 📅 (DD/MM). *Mínimo 3 días* de antelación ⏳.",
     "ask_observacion": "¿Alguna *observación*? 📝 (opcional; puedes escribir \"no\")",
 
-  "summary": "🧾 Pedido para {telefono}.\n• Tamaño: {tamano}\n• Sabores: {sabores}\n• Cantidad: {cantidad}\n• Recogida: {fecha}\n• Total aprox: *{total}€*\n\n¿Confirmas? (si/no) ✅❌",
+    "summary": "🧾 Pedido para {telefono}.\n• Tamaño: {tamano}\n• Sabores: {sabores}\n• Cantidad: {cantidad}\n• Recogida: {fecha}\n• Total aprox: *{total}€*\n\n¿Confirmas? (si/no) ✅❌",
     "confirm_yesno": "👉 Responde *si* o *no*, por favor.",
     "confirmed": "¡Listo! ✅ Hemos registrado tu pedido. Te enviaremos la confirmacion 🙌.",
-    "canceled": "Entendido. No se ha hecho ningun pedido ❌. ¡Gracias !",
+    "canceled": "Entendido. No se ha hecho ningun pedido ❌. ¡Gracias ! Escribe menu para volver al inicio . ",
 
     "delete_intro": "De acuerdo 🗂️. Dime el *número de teléfono* del pedido que quieres *cancelar* (9 dígitos) 🔢.",
     "delete_none": "No encontré pedidos *pendientes* con ese número 🔎.",
     "delete_found": "He encontrado {count} pedido(s) *pendiente(s)* para el teléfono *{telefono}* ☎️. ¿Quieres cancelarlo(s)? (si/no)",
-    "delete_done": "¡Listo! Pedido(s) cancelado(s) ✅.",
+    "delete_done": "¡Listo! Pedido(s) cancelado(s) ✅ Escribe menu para ver opciones .",
 
     "location": "Estamos en: *SayCheese By Néstor* 📍\nC. Abián, 4, 35212 Marpequeña, Las Palmas.\nCómo llegar 🗺️: {location_url}",
     "location_url": "https://maps.google.com?q=SayCheese%20By%20Nestor%20C.%20Abi%C3%A1n%2C%204%2035212%20Marpeque%C3%B1a",
@@ -52,16 +54,18 @@
   "ask_obs": "¿Alguna *observación*? 📝 (opcional; puedes escribirla directamente o poner \"no\")",
   "pickup_schedule": "Las porciones(4,5€) son sin reserva de Viernes a Domingo\n❗Horario semanal:\nJueves 11:00 / 13:00\nViernes 18:00/20:00\nSábado 11:00/13:30\nDomingo 11:00/13:30",
     "ask_delete_phone": "Vale 🗂️. Dime el *número de teléfono* del pedido que quieres cancelar (9 dígitos) 🔢.",
-    "delete_not_found": "No encontré pedidos *pendientes* con ese número 🔎.",
+    "delete_not_found": "No encontré pedidos *pendientes* con ese número 🔎 Escribe menu para ver opciones.",
     "delete_found_confirm": "He encontrado {count} pedido(s) *pendiente(s)* para el teléfono *{telefono}* ☎️. ¿Quieres borrarlo(s)? (si/no)",
-    "delete_canceled": "Operación cancelada ✅.",
+    "delete_canceled": "Operación cancelada ✅ Escribe menu para ver opciones.",
     "show_address": "Nuestra dirección es:\n{{address}} 📍\n\n🗺️ Puedes buscarnos en Google Maps.",
-  "confirm": "🧾 Pedido para {telefono}. Tamaño: {tamano}. Cantidad: {cantidad}. Sabores: {sabores}. Recogida: {fecha}. Total aprox: {total}€.\n👉 ¿Confirmas? (sí/no)"
+    "confirm": "🧾 Pedido para {telefono}. Tamaño: {tamano}. Cantidad: {cantidad}. Sabores: {sabores}. Recogida: {fecha}. Total aprox: {total}€.\n👉 ¿Confirmas? (sí/no)"
   },
+  "porciones_keywords": ["porciones", "porcion", "porción"],
+  "horario_keywords": ["horario", "horarios"],
   "options": {
     "tamano": ["grande", "cajitas"],
     "tamano_alias": { "1": "grande", "2": "cajitas", "tarta grande": "grande" },
-  "sabores": ["Clásica", "Lotus", "Pistacho", "Oreo", "Nocilla", "Gofio", "Mango-Maracuyá", "Hippo", "Caramelo Salado"],
+    "sabores": ["Clásica", "Lotus", "Pistacho", "Oreo", "Nocilla", "Gofio", "Mango-Maracuyá", "Hippo", "Caramelo Salado"],
     "precios": { "grande": 35, "cajitas": 12 }
   },
   "flow": [
@@ -86,8 +90,8 @@
       "onConfirmNo": "canceled",
       "createRecord": true
     },
-    { "id": "start",     "onKeywords": ["hola"], "reply": "welcome" },
-    { "id": "main_menu", "onKeywords": ["menu"], "reply": "menu" },
+  { "id": "start",     "onKeywords": ["hola"], "reply": "welcome" },
+  { "id": "main_menu", "onKeywords": ["menu"], "reply": "menu" },
     {
       "id": "delete_by_phone",
       "onKeywords": ["2", "cancelar", "borrar pedido", "cancelar pedido", "anular pedido"],

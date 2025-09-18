@@ -296,32 +296,84 @@ const { destroyAllClients } = require('./services/botService');
 const { attachBotHandlers, setServerManagedWA, setServerReinitializer, registerServerClient, publishQr, publishAuthenticated, publishReady, publishStatus } = require('./services/whatsappService');
 const { manejarMensajeTenant } = require('./services/botService');
 let waClient = null;
+let waInitAttempts = 0;
+const MAX_WA_ATTEMPTS = 3;
 async function initWA(){
+  waInitAttempts += 1;
+  const attempt = waInitAttempts;
   try {
+    console.log(`[WA] init attempt ${attempt}`);
     const { Client, LocalAuth } = require('whatsapp-web.js');
     const AUTH_DIR = path.join(process.cwd(), 'data', '.wwebjs_auth');
     try { require('fs').mkdirSync(AUTH_DIR, { recursive: true }); } catch {}
     if(waClient){ try { waClient.destroy(); } catch {} waClient = null; }
     waClient = new Client({
       authStrategy: new LocalAuth({ clientId: 'default', dataPath: AUTH_DIR }),
-      puppeteer: { headless: true, args: ['--no-sandbox','--disable-setuid-sandbox'] }
+      puppeteer: {
+        headless: 'new',
+        args: [
+          '--no-sandbox',
+          '--disable-setuid-sandbox',
+          '--disable-dev-shm-usage',
+          '--disable-gpu',
+          '--no-first-run',
+          '--no-zygote',
+          '--disable-background-networking',
+          '--disable-background-timer-throttling',
+          '--disable-breakpad',
+          '--disable-client-side-phishing-detection',
+          '--disable-component-update',
+          '--disable-default-apps',
+          '--disable-domain-reliability',
+          '--disable-extensions',
+          '--disable-features=AudioServiceOutOfProcess',
+          '--disable-hang-monitor',
+          '--disable-ipc-flooding-protection',
+          '--disable-popup-blocking',
+          '--disable-prompt-on-repost',
+          '--disable-renderer-backgrounding',
+          '--force-color-profile=srgb',
+          '--metrics-recording-only',
+          '--mute-audio',
+          '--no-default-browser-check',
+          '--password-store=basic',
+          '--use-mock-keychain'
+        ]
+      }
     });
     const manejar = (client, msg) => manejarMensajeTenant('samuel', client, msg);
     setServerManagedWA(true);
     try { registerServerClient('samuel', waClient); } catch {}
-  waClient.on('qr', async (qr) => { try { console.log('[bot] qr received'); await publishQr('samuel', qr); } catch {} });
+    let readyTimeout = setTimeout(()=>{
+      console.warn('[WA] ready not emitted within 40s');
+    }, 40000);
+    waClient.on('qr', async (qr) => { try { console.log('[bot] qr received'); await publishQr('samuel', qr); } catch {} });
     waClient.on('authenticated', () => { try { publishAuthenticated('samuel'); } catch {} });
-    waClient.on('ready', () => { try { publishReady('samuel'); } catch {} });
     waClient.on('auth_failure', (msg) => { try { publishStatus('samuel', 'error', { msg }); } catch {} });
-    waClient.on('disconnected', (reason) => { try { publishStatus('samuel', 'disconnected', { reason }); } catch {} });
+    waClient.on('disconnected', async (reason) => {
+      try { publishStatus('samuel', 'disconnected', { reason }); } catch {}
+      console.warn('[WA] disconnected', reason);
+      if(waInitAttempts < MAX_WA_ATTEMPTS){
+        const delay = 5000 * waInitAttempts;
+        console.log(`[WA] retrying init in ${delay}ms`);
+        setTimeout(()=>{ initWA().catch(()=>{}); }, delay);
+      }
+    });
     waClient.once('ready', () => {
+      clearTimeout(readyTimeout);
       console.log('[bot] ready');
+      waInitAttempts = 0; // reset attempts after success
       try { waClient._externalHandlersManaged = true; } catch {}
       attachBotHandlers(waClient, manejar);
     });
     waClient.initialize();
   } catch(e){
     console.error('[server] whatsapp-web.js unavailable:', e.message);
+    if(waInitAttempts < MAX_WA_ATTEMPTS){
+      const delay = 5000 * waInitAttempts;
+      console.log(`[WA] will retry in ${delay}ms`);
+      setTimeout(()=>{ initWA().catch(()=>{}); }, delay);
+    }
   }
 }
 // Provide reinitializer to whatsappService for /bot/relink to work in server-managed mode

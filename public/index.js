@@ -33,27 +33,45 @@ try {
   }, 300);
 } catch{}
 
-// Loader no-op (placeholder por si existe barra)
-let loaderCount=0;
-function showLoader(){ const el=$id('loader-bar'); if(el){ loaderCount++; el.hidden=false; } }
-function hideLoader(){ const el=$id('loader-bar'); if(el){ loaderCount=Math.max(0,loaderCount-1); if(loaderCount===0) el.hidden=true; } }
+// Persistencia de cancelados vistos (helpers ya definidos más abajo si no existen)
+// (Aseguramos que no haya duplicados; si ya están definidos, no redefinimos.)
+if(typeof loadSeenCanceled === 'undefined'){
+  const LS_SEEN = 'seenCanceledIds';
+  const LS_LAST = 'lastVisitCanceled';
+  function loadSeenCanceled(){ try { return new Set(JSON.parse(localStorage.getItem(LS_SEEN) || '[]')); } catch { return new Set(); } }
+  function saveSeenCanceled(set){ try { localStorage.setItem(LS_SEEN, JSON.stringify([...set])); } catch{} }
+  function loadLastVisitCanceled(){ try { const v=Number(localStorage.getItem(LS_LAST)); return Number.isFinite(v)?v:0; } catch { return 0; } }
+  function saveLastVisitCanceled(ms){ try { localStorage.setItem(LS_LAST, String(ms)); } catch{} }
+  window.loadSeenCanceled = loadSeenCanceled;
+  window.saveSeenCanceled = saveSeenCanceled;
+  window.loadLastVisitCanceled = loadLastVisitCanceled;
+  window.saveLastVisitCanceled = saveLastVisitCanceled;
+}
 
-// Fetch helper con backoff
-async function apiFetch(url, opt={}, attempt=0){
-  const sep = url.includes('?') ? '&' : '?';
-  const full= `${url}${sep}tenant=${encodeURIComponent(TENANT)}`;
-  const ac=new AbortController();
-  const t=setTimeout(()=>ac.abort(), 10000);
-  try{
-    showLoader();
-  const r = await fetch(full, { ...opt, signal: ac.signal, credentials:'same-origin', headers:{ 'Content-Type':'application/json', 'Cache-Control':'no-cache', 'Pragma':'no-cache', 'X-Tenant-Id': TENANT, ...(opt.headers||{}) } });
-    if(!r.ok) throw new Error(`${r.status}`);
-    return await r.json();
-  }catch(e){
-    if(attempt<3){ await new Promise(r=>setTimeout(r, 500*Math.pow(2,attempt))); return apiFetch(url,opt,attempt+1); }
-    toast(`Error de red (${e.message||e})`, 'err');
-    throw e;
-  } finally { clearTimeout(t); hideLoader(); }
+// =========================
+// Estado en memoria para cancelados vistos / frescos
+// =========================
+let seenCanceledIds = (typeof loadSeenCanceled === 'function') ? loadSeenCanceled() : new Set();
+let lastVisitCanceled = (typeof loadLastVisitCanceled === 'function') ? loadLastVisitCanceled() : 0;
+if(!Number.isFinite(lastVisitCanceled) || lastVisitCanceled <= 0){
+  lastVisitCanceled = Date.now();
+  if(typeof saveLastVisitCanceled === 'function') try { saveLastVisitCanceled(lastVisitCanceled); } catch{}
+}
+
+// Un pedido cancelado es "fresh" si:
+//  - status === 'canceled'
+//  - su id NO está en seenCanceledIds
+//  - canceledAt (o createdAt fallback) > lastVisitCanceled
+function isFreshCanceled(order){
+  try {
+    if(!order) return false;
+    if(String(order.status||'').toLowerCase() !== 'canceled') return false;
+    const id = String(order.id);
+    if(seenCanceledIds.has(id)) return false;
+    const ts = Number(order.canceledAt || order.createdAt || 0);
+    if(!Number.isFinite(ts)) return false;
+    return ts > lastVisitCanceled;
+  } catch { return false; }
 }
 
 // =========================
@@ -93,6 +111,44 @@ function startStatusPolling(){ stopStatusPolling(); statusTimer=setInterval(fetc
 async function refreshStatusNow(){ await fetchStatus(); }
 
 // =========================
+// apiFetch wrapper (añade tenant y reintentos)
+// =========================
+async function apiFetch(url, opt={}, attempt=0){
+  try {
+    const needsTenant = url.startsWith('/api/') || url.startsWith('/bot/') || url.startsWith('/records') || url.startsWith('/logs');
+    const hasQuery = url.includes('?');
+    const sep = hasQuery ? '&' : '?';
+    const finalUrl = needsTenant ? `${url}${sep}tenant=${encodeURIComponent(TENANT)}` : url;
+    const controller = new AbortController();
+    const timeout = setTimeout(()=> controller.abort(), 12000);
+    const res = await fetch(finalUrl, {
+      credentials:'same-origin',
+      headers: { 'X-Tenant-Id': TENANT, ...(opt.headers||{}) },
+      signal: controller.signal,
+      ...opt
+    });
+    clearTimeout(timeout);
+    if(!res.ok){
+      if(res.status===429 && attempt<2){
+        await new Promise(r=>setTimeout(r, 500 * (attempt+1)));
+        return apiFetch(url, opt, attempt+1);
+      }
+      let errJson=null; try { errJson=await res.json(); } catch{}
+      return errJson || { ok:false, status: res.status };
+    }
+    const ct = res.headers.get('content-type')||'';
+    if(ct.includes('application/json')) return await res.json();
+    return await res.text();
+  } catch(e){
+    if(attempt < 2){
+      await new Promise(r=>setTimeout(r, 400 * (attempt+1)));
+      return apiFetch(url, opt, attempt+1);
+    }
+    return { ok:false, error: e.message || 'fetch_failed' };
+  }
+}
+
+// =========================
 // Tabs
 // =========================
 function switchTab(name){
@@ -105,6 +161,8 @@ function switchTab(name){
   if(to){ to.classList.add('active'); }
   // Reaplicar filtro al cambiar de pestaña
   applyActiveFilter();
+
+  // Eliminado auto-dismiss de cancelados: sólo botón "Marcar todos vistos" o borrado manual.
 }
 function wireTabs(){
   document.querySelectorAll('.tabbar .tab').forEach(btn=>{
@@ -135,7 +193,12 @@ function renderCard(order){
   const isCanceled = String(order.status||'').toLowerCase()==='canceled';
   const isPending = String(order.status||'').toLowerCase()==='pending' || (!order.status);
   const isConfirmed = String(order.status||'').toLowerCase()==='confirmed';
-  card.className = 'order-card' + (isCanceled ? ' canceled' : '');
+  if(isCanceled){
+    const fresh = isFreshCanceled(order);
+    card.className = 'order-card canceled ' + (fresh ? 'is-fresh highlight-new' : 'dismissed');
+  } else {
+    card.className = 'order-card';
+  }
   card.setAttribute('data-card-id', String(order.id));
   const telefono = getTelefono(order);
   const obs = getObs(order);
@@ -249,6 +312,11 @@ function clearAndFill(listId, items){
   const cont=$id(listId); if(!cont) return;
   cont.innerHTML='';
   (items||[]).forEach(o=> cont.appendChild(renderCard(o)));
+  if(listId==='list-cancelados'){
+    ensureMarkSeenButton();
+    // Attach dismiss handlers to all fresh canceled cards (batch render)
+    try { cont.querySelectorAll('.order-card.canceled.is-fresh').forEach(c=> attachFreshDismissHandler(c)); } catch{}
+  }
 }
 
 function updateEmptyStates(){
@@ -274,6 +342,7 @@ async function fetchPedidos(estado='pending'){
 // Local cache for filtering without re-fetch
 let CACHE = { pending: [], confirmed: [], canceled: [] };
 
+// (Ya movido arriba) Persistencia de cancelados vistos: ver definiciones previas
 function applyPhoneFilter(arr){
   const f = ($id('phoneFilter')?.value||'').trim();
   if(!f) return arr;
@@ -297,6 +366,7 @@ function applyActiveFilter(){
     clearAndFill('list-cancelados', applyPhoneFilter(CACHE.canceled));
   }
   updateEmptyStates();
+  updateCanceledBadge();
 }
 
 async function renderPedidos(){
@@ -306,14 +376,39 @@ async function renderPedidos(){
       fetchPedidos('confirmed'),
       fetchPedidos('canceled')
     ]);
+    // Helper to parse DD-MM or DD/MM (no year -> current year)
+    const parsePickupTs = (o)=>{
+      try{
+        const raw = (o?.fields?.fecha || o?.fecha || '').trim();
+        if(!raw) return Number.MAX_SAFE_INTEGER;
+        const m = raw.match(/^(\d{2})[\/-](\d{2})(?:[\/-](\d{2,4}))?$/);
+        if(!m) return Number.MAX_SAFE_INTEGER;
+        const dd = Number(m[1]); const mm = Number(m[2]);
+        const now = new Date();
+        const yyyy = (m[3]? (m[3].length===2 ? 2000+Number(m[3]) : Number(m[3])) : now.getFullYear());
+        const dt = new Date(yyyy, mm-1, dd, 0,0,0,0);
+        if(isNaN(dt.getTime())) return Number.MAX_SAFE_INTEGER;
+        return dt.getTime();
+      }catch{ return Number.MAX_SAFE_INTEGER; }
+    };
     CACHE.pending = Array.isArray(pending)? pending:[];
-    CACHE.confirmed = Array.isArray(confirmed)? confirmed:[];
+    CACHE.confirmed = Array.isArray(confirmed)? [...confirmed].sort((a,b)=> parsePickupTs(a) - parsePickupTs(b)) : [];
     CACHE.canceled = Array.isArray(canceled)? canceled:[];
     // Rellenamos listas sin filtrar inicialmente y aplicamos filtro a la activa
     clearAndFill('list-pendientes', CACHE.pending);
     clearAndFill('list-confirmados', CACHE.confirmed);
     clearAndFill('list-cancelados', CACHE.canceled);
+    // Sólo añadir highlight si hay fresh; no quitarlo aquí (se limpia al entrar en la pestaña)
+    const anyFresh = document.querySelector('#list-cancelados .order-card.canceled.is-fresh');
+    if(anyFresh){
+      const cancelTab = document.querySelector('.tabbar .tab[data-target="cancelados"]');
+      if(cancelTab) cancelTab.classList.add('highlight-cancelados');
+    }
     applyActiveFilter();
+    // Asegurar badge y alarma actualizados tras render completo
+    updateCanceledBadge();
+    ensureCancelTabAlarm();
+    try { console.log('[freshCount]', countFreshCanceled()); } catch{}
   }catch{}
 }
 
@@ -364,7 +459,16 @@ window.addEventListener('beforeunload', ()=>{ if(es) try{ es.close(); }catch{} }
 // Helpers SSE mutations
 function removeCard(id){ const el=document.querySelector(`[data-card-id="${CSS.escape(String(id))}"]`); if(el){ el.remove(); updateEmptyStates(); } }
 function addPendingCard(order){ const list=$id('list-pendientes'); if(!list) return; list.appendChild(renderCard(order)); updateEmptyStates(); }
-function addCanceledCard(order){ const list=$id('list-cancelados'); if(!list) return; const o={...order}; if(o.canceledAt) o.createdAt=o.canceledAt; if(list.firstChild) list.insertBefore(renderCard(o), list.firstChild); else list.appendChild(renderCard(o)); updateEmptyStates(); }
+function addCanceledCard(order){
+  const list=$id('list-cancelados'); if(!list) return;
+  const o={...order}; if(o.canceledAt) o.createdAt=o.canceledAt;
+  let newCard;
+  if(list.firstChild){ newCard = renderCard(o); list.insertBefore(newCard, list.firstChild); }
+  else { newCard = renderCard(o); list.appendChild(newCard); }
+  updateEmptyStates();
+  updateCanceledBadge();
+  ensureMarkSeenButton();
+}
 
 function markCardConfirmed(id){
   const el = document.querySelector(`[data-card-id="${CSS.escape(String(id))}"]`);
@@ -395,7 +499,55 @@ function moveToCanceled(order){
   removeCard(id);
   addCanceledCard(order);
   applyActiveFilter();
+  updateCanceledBadge();
+  ensureCancelTabAlarm();
+  try { console.log('[freshCount]', countFreshCanceled()); } catch{}
 }
+
+function countFreshCanceled(){
+  return document.querySelectorAll('#list-cancelados .order-card.canceled.is-fresh').length;
+}
+function updateCanceledBadge(){
+  const n = countFreshCanceled();
+  const badge = document.getElementById('badge-cancelados');
+  if(!badge) return;
+  if(n>0){ badge.textContent = String(n); badge.hidden=false; } else { badge.hidden=true; }
+}
+function ensureCancelTabAlarm(){
+  const tab = document.querySelector('.tabbar .tab[data-target="cancelados"]');
+  if(!tab) return;
+  if(countFreshCanceled()>0) tab.classList.add('highlight-cancelados');
+}
+function ensureMarkSeenButton(){
+  const panel=document.getElementById('panel-cancelados'); if(!panel) return;
+  let bar = panel.querySelector('.mark-seen-bar');
+  if(!bar){
+    bar=document.createElement('div');
+    bar.className='mark-seen-bar';
+    const btn=document.createElement('button');
+    btn.className='btn-mark-seen';
+    btn.type='button';
+    btn.textContent='Marcar todos vistos';
+    btn.addEventListener('click', ()=> markAllCanceledSeen());
+    bar.appendChild(btn);
+    panel.insertBefore(bar, panel.firstChild);
+  }
+  bar.hidden = countFreshCanceled()===0;
+}
+function markAllCanceledSeen(){
+  const now=Date.now(); saveLastVisitCanceled(now); lastVisitCanceled=now;
+  document.querySelectorAll('#list-cancelados .order-card.canceled.is-fresh').forEach(el=>{
+    const id=el.getAttribute('data-card-id'); if(id) seenCanceledIds.add(String(id));
+    el.classList.remove('is-fresh'); el.classList.add('dismissed');
+  });
+  saveSeenCanceled(seenCanceledIds);
+  updateCanceledBadge();
+  ensureMarkSeenButton();
+  const cancelTab = document.querySelector('.tabbar .tab[data-target="cancelados"]');
+  if(cancelTab) cancelTab.classList.remove('highlight-cancelados');
+}
+
+// Eliminado: ya no se descartan los fresh cancelados al click individual.
 
 function removeFromCaches(id){
   const sid = String(id);
@@ -407,6 +559,10 @@ function removeFromCaches(id){
 async function deleteOrder(id, from){
   try{
     if(!confirm('¿Eliminar definitivamente este pedido?')) return;
+    // Si borramos un cancelado fresco, marcarlo como visto antes de eliminar
+    if(from === 'canceled'){
+      try { seenCanceledIds.add(String(id)); saveSeenCanceled(seenCanceledIds); } catch{}
+    }
     await apiFetch(`/api/pedidos/${encodeURIComponent(id)}`, { method:'DELETE' });
     removeFromCaches(id);
     removeCard(id);

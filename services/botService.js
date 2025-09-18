@@ -22,7 +22,7 @@ async function cancelByPhoneAndReply(tenantId, client, chatId, phone, cfg) {
 async function sendPrompt(tenantId, client, to, session, text, options = {}) {
 	const opts = options || {};
 	// Leer sesión fresca para evitar falsos positivos de rebote
-	let fresh = session;
+	let fresh = session || {};
 	try { fresh = (await convStore.readConv(tenantId, String(to).replace(/@.*/, ''))) || session || {}; } catch {}
 	if (!opts.bypassDebounce && shouldSkipPromptDueToDebounce(fresh, text)) return;
 	await setLastPrompt(tenantId, String(to).replace(/@.*/, ''), text);
@@ -50,6 +50,29 @@ async function setStageAndSave(tenantId, phone, newStage, session) {
 						if (newSession.state.stage !== internalToSessionStage(newStage)) {
 							throw new Error(`Stage no actualizado correctamente: esperado ${internalToSessionStage(newStage)}, real ${newSession.state.stage}`);
 						}
+}
+
+// ==========================
+// Historial simple de stages para navegación atrás global
+// Se almacena en session.stateHistory (array de internal stages en orden)
+function pushStageHistory(conv, stage){
+	if(!conv) return;
+	if(!Array.isArray(conv.stateHistory)) conv.stateHistory=[];
+	const last = conv.stateHistory[conv.stateHistory.length-1];
+	if(last!==stage) conv.stateHistory.push(stage);
+}
+function popStageHistory(conv){
+	if(!conv || !Array.isArray(conv.stateHistory)) return null;
+	// Remove current stage entry and get previous
+	if(conv.stateHistory.length>0) conv.stateHistory.pop();
+	return conv.stateHistory[conv.stateHistory.length-1] || null;
+}
+async function persistStageHistory(tenantId, phone, conv){
+	try{
+		const sess = await convStore.readConv(tenantId, phone) || {};
+		sess.stateHistory = conv.stateHistory || [];
+		await convStore.writeConv(tenantId, phone, sess);
+	}catch{}
 }
 // Clean consolidated bot service implementation (lazy-load WA lib to avoid early crashes)
 const DISABLE_WA = /^(1|true|yes)$/i.test(String(process.env.DISABLE_WA||''));
@@ -180,6 +203,15 @@ function renderFlavorList(cfg){
 	const flavors=(cfg.catalog?.flavors||cfg.flavors||[]);
 	if(!flavors.length) return '';
 	return '\n' + flavors.map(f=>`• ${f}`).join('\n');
+}
+
+// Build sabor prompt without duplicating embedded flavor list if user already placed it in ask_sabores
+function buildAskSaboresPrompt(cfg){
+  const msgs = cfg.messages || {};
+  const base = msgs.ask_sabores || 'Elige sabores (separa con comas):';
+  // If base already contains at least two listed flavors bullets, assume it embeds the list
+	if (/\n\s*•\s*[^\n]+\n.*•/m.test(base)) return base; // has bullet list already
+  return base + renderFlavorList(cfg);
 }
 
 // Allowed sizes helper (remove 'porciones')
@@ -488,7 +520,7 @@ function genPromptForStage(cfg, conv, msgs, stage){
 		case 'ask_name': return msgs.ask_nombre||'¿Cuál es tu *nombre*? 🙂 (o escribe cancelar)';
 		case 'ask_phone': return msgs.ask_telefono||'Indica tu *teléfono* (9 dígitos) 📞:';
 		case 'ask_size': return buildSizeQuestion(cfg);
-		case 'ask_flavors': return (msgs.ask_sabores||'Elige sabores 🍓 (separa con comas):') + renderFlavorList(cfg);
+		case 'ask_flavors': return buildAskSaboresPrompt(cfg);
 		case 'ask_qty': {
 			const st=conv.selectedSize?.type;
 			if(st==='cajitas') return msgs.ask_cantidad_cajitas||'¿Cantidad de cajitas? (1-50) 📦';
@@ -599,6 +631,26 @@ async function manejarMensajeTenant(a, b, c){
 		const inFlow = Boolean(activeSessionStage) || (conv && conv.stage && conv.stage !== 'none');
 		const lastAsk = session?.lastAsk || null;
 		const cfg=await getConfig(tenantId); const msgs=cfg.messages||{};
+	// --- Quick answers for "porciones" and "horario" keywords (always, no flow interruption) ---
+	try {
+		const sourceMsgs = cfg.messages || {}; // migrated from messages_extra
+		const porcWords = (cfg.porciones_keywords || ['porciones']).map(w=>w.toLowerCase());
+		const horaWords = (cfg.horario_keywords || ['horario']).map(w=>w.toLowerCase());
+		const hasPorciones = porcWords.some(w=> lower.includes(w));
+		const hasHorario = horaWords.some(w=> lower.includes(w));
+		if(hasPorciones && sourceMsgs.porciones_info){
+			const out = sourceMsgs.porciones_info;
+			console.log('[QUICK][PORCIONES]', phone, out.slice(0,80));
+			await sendSafe(client, msg.from, out);
+			return null; // do not advance/interrupt current stage
+		}
+		if(hasHorario && sourceMsgs.horario_info){
+			const out = sourceMsgs.horario_info;
+			console.log('[QUICK][HORARIO]', phone, out.slice(0,80));
+			await sendSafe(client, msg.from, out);
+			return null;
+		}
+	} catch {}
 		const sizes=getAllowedSizes(cfg); const flavors=cfg.catalog?.flavors||cfg.flavors||[]; const keywords=cfg.keywords||{};
 	// --- LOG: Stage y sesión al recibir mensaje ---
 	console.log(`[LOG] [${tenantId}] Mensaje recibido de ${msg.from}: "${msg.body}"`);
@@ -840,10 +892,10 @@ async function manejarMensajeTenant(a, b, c){
 				}
 				return null;
 			}
-			// Buscar pedidos por teléfono y pedir confirmación
+			// Buscar pedidos por teléfono (pendientes o confirmados) y pedir confirmación
 			const matches = await findPendingByPhone(tenantId, lower);
 						if(!matches || matches.length === 0){
-								const txt = msgs.no_pedidos_para_telefono || 'No hay pedidos pendientes para ese teléfono.';
+							const txt = msgs.delete_none || 'No encontré pedidos pendientes o confirmados para ese teléfono.';
 								{
 									const preview = String(txt).slice(0,80);
 									console.log('[SEND]', phone, preview);
@@ -952,9 +1004,9 @@ async function manejarMensajeTenant(a, b, c){
 								runtime.setState(tenantId, phone, { stage:'delete_by_phone', data:{}, flow:'delete_order', welcomed:conv.welcomed, lastWelcomeAt:conv.lastWelcomeAt });
 								const senderTel = phone.replace(/\D/g,'').slice(-9);
 								const matches = await findPendingByPhone(tenantId, senderTel);
-								const confirmedMatches = (matches||[]).filter(m=> String(m.status||'').toLowerCase()==='confirmed');
-								if(!confirmedMatches || confirmedMatches.length===0){
-									const txt = msgs.only_cancel_confirmed || 'Solo puedes cancelar pedidos confirmados. Si tu pedido está pendiente, espera confirmación.';
+								const candidates = (matches||[]).filter(m=> String(m.status||'').toLowerCase()!=='canceled');
+								if(!candidates || candidates.length===0){
+									const txt = msgs.delete_none || 'No encontré pedidos pendientes o confirmados para ese número.';
 									{
 										const preview = String(txt).slice(0,80);
 										console.log('[SEND]', phone, preview);
@@ -968,16 +1020,16 @@ async function manejarMensajeTenant(a, b, c){
 								}
 								try {
 									const sess = await convStore.readConv(tenantId, phone) || {};
-									sess.del_list = confirmedMatches.map(m=> String(m.id));
+									sess.del_list = candidates.map(m=> String(m.id));
 									sess.tel = senderTel;
 									sess.state = { flow:'delete_order', stage:'delete_by_phone' };
 									sess.lastAsk = { stage:'delete_by_phone', ts: Date.now() };
 									await convStore.writeConv(tenantId, phone, sess);
 								} catch{}
 								const headerBase = (msgs.delete_found || 'He encontrado {count} pedido(s) para el teléfono {telefono}:')
-									.replace('{count}', String(confirmedMatches.length))
+									.replace('{count}', String(candidates.length))
 									.replace('{telefono}', senderTel);
-								const blocks = confirmedMatches.map(o=>`Pedido ID ${o.id}\n${summarizeStoredOrder(o)}`);
+								const blocks = candidates.map(o=>`Pedido ID ${o.id}\n${summarizeStoredOrder(o)}`);
 								const tail = msgs.delete_confirm || '¿Este es tu pedido? ¿Seguro que quieres cancelar? (sí/no)';
 								const out = [headerBase, ...blocks, tail].join('\n\n');
 								{
@@ -1021,61 +1073,78 @@ async function manejarMensajeTenant(a, b, c){
     }
   } catch(e){ console.error(`[${tenantId}] menu/delete flow error`, e); }
 
-	// Back navigation
-	const backSet=new Set(['atras','atrás','volver','back']);
+	// Back navigation (historial global)
+	const backSet = new Set(['atras','atrás','volver','back']);
 	if(backSet.has(lower) && conv.stage && conv.stage!=='none'){
-	const order=['ask_size','ask_flavors','ask_qty','ask_date','ask_obs','ask_more','confirm'];
-		const idx=order.indexOf(conv.stage);
-		if(idx>0){
-			const newStage=order[idx-1];
-			conv.stage=newStage;
-				runtime.setState(tenantId, phone, conv);
-				// Persist session stage and lastAsk
-				try {
-					const ss = internalToSessionStage(newStage);
-					const fresh = await convStore.readConv(tenantId, phone) || {};
-					await convStore.writeConv(tenantId, phone, {
-						...fresh,
-						state: { flow:'new_order', stage: ss },
-						lastAsk: { stage: ss, ts: Date.now() }
-					});
-				} catch {}
-			// regenerate prompt for that stage without mutating collected data (user can overwrite)
-				switch(newStage){
-					case 'ask_size': { 
-						const prompt = buildSizeQuestion(cfg);
-						if(shouldSkipPromptDueToDebounce(session, prompt)) return null;
-						await setLastPrompt(tenantId, phone, prompt);
-						return prompt; 
-					}
-				case 'ask_flavors': {
-					return (msgs.ask_sabores||'Elige sabores (separa con comas):') + renderFlavorList(cfg);
+		// Cargar historial de session si no está en memoria
+		try {
+			const sessRead = await convStore.readConv(tenantId, phone) || {};
+			if(!Array.isArray(conv.stateHistory) && Array.isArray(sessRead.stateHistory)) conv.stateHistory = sessRead.stateHistory;
+		} catch{}
+		// Si no había historial, inicializarlo con el orden lineal conocido hasta el stage actual
+		if(!Array.isArray(conv.stateHistory) || !conv.stateHistory.length){
+			const linear=['ask_size','ask_flavors','confirm_flavor_distribution','ask_qty','ask_date','ask_obs','ask_more','confirm'];
+			const idx = linear.indexOf(conv.stage);
+			conv.stateHistory = idx>0 ? linear.slice(0, idx+1) : [conv.stage];
+		}
+		const prev = popStageHistory(conv);
+		if(!prev){
+			// Volvemos a idle
+			try { runtime.setState(tenantId, phone, { stage:'none', data:{}, items:[], welcomed:conv.welcomed, lastWelcomeAt:conv.lastWelcomeAt }); } catch{}
+			try { const fresh=await convStore.readConv(tenantId, phone)||{}; fresh.state={flow:'none',stage:'none'}; fresh.stateHistory=[]; await convStore.writeConv(tenantId, phone, fresh);}catch{}
+			return msgs.menu_short || buildMenu(cfg);
+		}
+		conv.stage = prev;
+		runtime.setState(tenantId, phone, conv);
+		try {
+			const ss = internalToSessionStage(prev);
+			const fresh = await convStore.readConv(tenantId, phone) || {};
+			fresh.state = { flow:'new_order', stage: ss };
+			fresh.lastAsk = { stage: ss, ts: Date.now() };
+			fresh.stateHistory = conv.stateHistory;
+			await convStore.writeConv(tenantId, phone, fresh);
+		} catch{}
+		// Regenerar prompt
+		switch(prev){
+			case 'ask_size': {
+				const prompt = buildSizeQuestion(cfg);
+				if(shouldSkipPromptDueToDebounce(session, prompt)) return null;
+				await setLastPrompt(tenantId, phone, prompt);
+				return prompt;
+			}
+			case 'ask_flavors': return buildAskSaboresPrompt(cfg);
+			case 'confirm_flavor_distribution': {
+				const dist = conv.data?.sabores_distribucion || [];
+				if(dist.length){
+					const resumen = dist.map(d=>`${d.count} ${d.flavor}`).join(' ');
+					return `Has indicado: ${resumen}. ¿Confirmas esta selección 😄 ? (si/no)`;
 				}
-				case 'ask_qty': {
-					const st=conv.selectedSize?.type;
-					if(st==='cajitas') return msgs.ask_cantidad_cajitas||'¿Cantidad de cajitas? (1-50) 📦';
-					return msgs.ask_cantidad_entera||'¿Cantidad? (1-20) 🔢';
-				}
-				case 'ask_date': {
-					const base = msgs.ask_fecha || buildAskDatePrompt();
-					const sched = cfg.messages?.pickup_schedule ? ('\n\n' + cfg.messages.pickup_schedule) : '';
-					return base + sched;
-				}
-				case 'ask_obs': return msgs.ask_obs||'📝 Observaciones (escribe "no" si no hay)'
-;
-				case 'confirm': {
-					const tpl=(msgs.confirm||'Confirma pedido: {tamano} {fecha} Total {total}€');
-					const cantidad=(conv.data.cantidad||1);
-					const summary=tpl
-						.replace('{nombre}',conv.data.nombre||'')
-						.replace('{telefono}',conv.data.telefono||'')
-						.replace('{tamano}',conv.selectedSize?.label||conv.data.tamano||'')
-						.replace('{cantidad}',String(cantidad))
-						.replace('{sabores}',(conv.data.sabores||[]).join(', '))
-						.replace('{fecha}',conv.data.fecha||'')
-						.replace('{total}',String(conv.total||0));
-					return summary+'\n'+(msgs.confirm_yesno||'Responde sí o no.');
-				}
+				return buildAskSaboresPrompt(cfg);
+			}
+			case 'ask_qty': {
+				const st=conv.selectedSize?.type;
+				if(st==='cajitas') return msgs.ask_cantidad_cajitas||'¿Cantidad de cajitas? (1-50) 📦';
+				return msgs.ask_cantidad_entera||'¿Cantidad? (1-20) 🔢';
+			}
+			case 'ask_date': {
+				const base = msgs.ask_fecha || buildAskDatePrompt();
+				const sched = cfg.messages?.pickup_schedule ? ('\n\n' + cfg.messages.pickup_schedule) : '';
+				return base + sched;
+			}
+			case 'ask_obs': return msgs.ask_obs||'📝 Observaciones (escribe "no" si no hay)';
+			case 'ask_more': return msgs.ask_mas || '¿Quieres añadir algo más a tu pedido? (sí/no) ➕';
+			case 'confirm': {
+				const tpl=(msgs.confirm||'Confirma pedido: {tamano} {fecha} Total {total}€');
+				const cantidad=(conv.data.cantidad||1);
+				const summary=tpl
+					.replace('{nombre}',conv.data.nombre||'')
+					.replace('{telefono}',conv.data.telefono||'')
+					.replace('{tamano}',conv.selectedSize?.label||conv.data.tamano||'')
+					.replace('{cantidad}',String(cantidad))
+					.replace('{sabores}',(conv.data.sabores||[]).join(', '))
+					.replace('{fecha}',conv.data.fecha||'')
+					.replace('{total}',String(conv.total||0));
+				return summary+'\n'+(msgs.confirm_yesno||'Responde sí o no.');
 			}
 		}
 	}
@@ -1139,8 +1208,9 @@ if(conv.stage==='none'){
 		if(!existing){
 			return 'No encontré pedidos para tu número. Escribe "pedido" para crear uno nuevo.';
 		}
-		if(String(existing.status||'').toLowerCase()!=='confirmed'){
-			return 'Solo puedes modificar pedidos confirmados. Tu pedido aún está pendiente ⏳.';
+		// Permitimos modificar pedidos pendientes o confirmados (no cancelados)
+		if(String(existing.status||'').toLowerCase()==='canceled'){
+			return 'Tu último pedido está cancelado. Escribe "pedido" para crear uno nuevo.';
 		}
 		// Parse existing pickup date and enforce 3-day rule
 		const norm = (s)=> String(s||'').trim().replace(/[\\/]/g,'-');
@@ -1229,18 +1299,69 @@ if(conv.stage==='none'){
 			conv.selectedSize = sel;
 			console.log(`[LOG] [${tenantId}] Guardando tamaño para ${phone}: "${key}"`);
 				const newState = { ...conv, stage: 'ask_flavors' };
-			runtime.setState(tenantId, phone, newState);
+		pushStageHistory(newState, 'ask_size');
+		pushStageHistory(newState, 'ask_flavors');
+		runtime.setState(tenantId, phone, newState);
 			console.log('[STATE]', phone, '->', newState.stage);
 			try { await saveSessionState(tenantId, phone, 'ask_flavors'); } catch {}
+			try { await persistStageHistory(tenantId, phone, newState); } catch{}
 			await markLastPromptAnswered(tenantId, phone);
-				await sendPrompt(tenantId, client, msg.from, session, (msgs.ask_sabores||'Elige sabores (separa con comas):') + renderFlavorList(cfg));
+				await sendPrompt(tenantId, client, msg.from, session, buildAskSaboresPrompt(cfg));
 				return null;
 		}
 			case 'ask_flavors': {
 				const fmap = canonicalFlavorMap(cfg);
-				const list = String(text||'').split(',').map(s=>s.trim()).filter(Boolean);
+				const raw = String(text||'').trim();
+				if(!raw){
+					return buildAskSaboresPrompt(cfg);
+				}
+				// Detect distribution pattern like: "1 oreo 2 mango 1 lotus 1 clásica"
+				// Strategy: tokenize, group as (count, flavor words until next count or end)
+				const tokens = raw.split(/\s+/).filter(Boolean);
+				let distribution = [];
+				let i=0; let validDist=true; let totalDist=0;
+				while(i < tokens.length){
+					const numTok = tokens[i];
+					if(!/^\d+$/.test(numTok)){ validDist=false; break; }
+					const count = Number(numTok);
+					i++;
+					let flavorWords=[];
+					while(i < tokens.length && !/^\d+$/.test(tokens[i])){ flavorWords.push(tokens[i]); i++; }
+					if(flavorWords.length===0){ validDist=false; break; }
+					const flavorNameRaw = flavorWords.join(' ');
+					const normName = normalize(flavorNameRaw);
+					// Resolve against canonical map by scanning keys
+					let matchedCanonical = null;
+					for(const [k,v] of fmap.entries()){
+						if(k===normName){ matchedCanonical = v; break; }
+					}
+					if(!matchedCanonical){
+						validDist=false; break;
+					}
+					distribution.push({ count, flavor: matchedCanonical });
+					totalDist += count;
+					if(distribution.length>50){ validDist=false; break; }
+				}
+				if(validDist && distribution.length>0){
+					// Save provisional distribution and ask for confirmation
+					conv.data.sabores_distribucion = distribution;
+					conv.data.sabores = distribution.map(d=>d.flavor); // base list (may include repeats logically)
+					conv.data.cantidad_sugerida = totalDist;
+					const resumen = distribution.map(d=>`${d.count} ${d.flavor}`).join(' ');
+					const msgConf = `Has indicado: ${resumen}. ¿Confirmas esta selección 😄 ? (si/no)`;
+					const nextState = { ...conv, stage: 'confirm_flavor_distribution' };
+					pushStageHistory(nextState, 'ask_flavors');
+					pushStageHistory(nextState, 'confirm_flavor_distribution');
+					runtime.setState(tenantId, phone, nextState);
+					try { await saveSessionState(tenantId, phone, 'confirm_flavor_distribution'); } catch {}
+					try { await persistStageHistory(tenantId, phone, nextState); } catch{}
+					await sendPrompt(tenantId, client, msg.from, session, msgConf, { bypassDebounce:true });
+					return null;
+				}
+				// Fallback: treat as comma-separated flavors
+				const list = raw.split(',').map(s=>s.trim()).filter(Boolean);
 				if(list.length===0){
-					return (msgs.ask_sabores||'Elige sabores (separa con comas):') + renderFlavorList(cfg);
+					return buildAskSaboresPrompt(cfg);
 				}
 				const resolved = resolveFlavors(list, fmap);
 				if(!resolved.ok){
@@ -1249,8 +1370,11 @@ if(conv.stage==='none'){
 				conv.data.sabores = resolved.flavors;
 				await markLastPromptAnswered(tenantId, phone);
 				const nextState = { ...conv, stage: 'ask_qty' };
+				pushStageHistory(nextState, 'ask_flavors');
+				pushStageHistory(nextState, 'ask_qty');
 				runtime.setState(tenantId, phone, nextState);
 				try { await saveSessionState(tenantId, phone, 'ask_qty'); } catch {}
+				try { await persistStageHistory(tenantId, phone, nextState); } catch{}
 				const st = conv.selectedSize?.type;
 				let promptQty;
 				if(st==='cajitas') promptQty = msgs.ask_cantidad_cajitas||'¿Cantidad de cajitas? (1-50) 📦';
@@ -1258,6 +1382,63 @@ if(conv.stage==='none'){
 				await sendPrompt(tenantId, client, msg.from, session, promptQty);
 				return null;
 			}
+        case 'confirm_flavor_distribution': {
+          const low = lower.trim();
+					if(/^(atras|atrás)$/i.test(low)){
+						// Go back to flavor selection retaining previous size & data but clearing provisional distribution
+						delete conv.data.sabores_distribucion;
+						delete conv.data.cantidad_sugerida;
+						// Keep sabores only if you want them prefilled? We'll clear to re-enter.
+						delete conv.data.sabores;
+						const prevState = { ...conv, stage: 'ask_flavors' };
+						runtime.setState(tenantId, phone, prevState);
+						try { await saveSessionState(tenantId, phone, 'ask_flavors'); } catch {}
+						await sendPrompt(tenantId, client, msg.from, session, buildAskSaboresPrompt(cfg), { bypassDebounce:true });
+						return null;
+					}
+          if(/^s[ií]$/i.test(low) || /^(si|sí|ok|vale|confirmo)$/i.test(low)){
+            // Accept distribution: set cantidad and advance directly to date stage (skip ask_qty)
+            const total = Number(conv.data.cantidad_sugerida||0);
+            if(total>0) conv.data.cantidad = total;
+            delete conv.data.cantidad_sugerida;
+            await markLastPromptAnswered(tenantId, phone);
+						if(conv.data && conv.data.fecha){
+							// Fecha ya establecida previamente (multi-item). Saltar a observaciones directamente
+							const nextState = { ...conv, stage: 'ask_obs' };
+							pushStageHistory(nextState, 'confirm_flavor_distribution');
+							pushStageHistory(nextState, 'ask_obs');
+							runtime.setState(tenantId, phone, nextState);
+							try { await saveSessionState(tenantId, phone, 'ask_obs'); } catch {}
+							try { await persistStageHistory(tenantId, phone, nextState); } catch{}
+							const promptObs = msgs.ask_obs || '¿Alguna observación? (escribe "no" si no hay)';
+							await sendPrompt(tenantId, client, msg.from, session, promptObs, { bypassDebounce:true });
+							return null;
+						} else {
+							const nextState = { ...conv, stage: 'ask_date' };
+							pushStageHistory(nextState, 'confirm_flavor_distribution');
+							pushStageHistory(nextState, 'ask_date');
+							runtime.setState(tenantId, phone, nextState);
+							try { await saveSessionState(tenantId, phone, 'ask_date'); } catch {}
+							try { await persistStageHistory(tenantId, phone, nextState); } catch{}
+							const base = msgs.ask_fecha || buildAskDatePrompt();
+							const sched = cfg.messages?.pickup_schedule ? ('\n\n' + cfg.messages.pickup_schedule) : '';
+							await sendPrompt(tenantId, client, msg.from, session, base + sched, { bypassDebounce:true });
+							return null;
+						}
+          }
+          if(/^no$/i.test(low)){
+            // Restart flavor selection
+            delete conv.data.sabores_distribucion;
+            delete conv.data.cantidad_sugerida;
+            delete conv.data.sabores;
+            const nextState = { ...conv, stage: 'ask_flavors' };
+            runtime.setState(tenantId, phone, nextState);
+            try { await saveSessionState(tenantId, phone, 'ask_flavors'); } catch {}
+				await sendPrompt(tenantId, client, msg.from, session, buildAskSaboresPrompt(cfg), { bypassDebounce:true });
+            return null;
+          }
+          return 'Responde si o no para confirmar la distribución de sabores.';
+        }
 		case 'ask_qty': {
 				const n=Number(lower);
 				const st=conv.selectedSize?.type;

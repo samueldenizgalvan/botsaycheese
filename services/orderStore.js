@@ -192,8 +192,8 @@ function normalizePhone(s){
 async function findPendingByPhone(tenantId, phone){
   const needle = normalizePhone(phone);
   const all = await readAllFast(tenantId);
-  // Restricción: solo permitir acciones sobre pedidos confirmados
-  return all.filter(o => (o.status==='confirmed') && normalizePhone(o?.customer?.phone || o?.fields?.telefono) === needle);
+  // Permitir acciones sobre pedidos pendientes o confirmados
+  return all.filter(o => ((o.status==='confirmed') || (o.status==='pending')) && normalizePhone(o?.customer?.phone || o?.fields?.telefono) === needle);
 }
 
 async function deletePendingByPhone(tenantId, phone){
@@ -216,8 +216,8 @@ async function moveToCanceled(tenantId, ids){
   let changed = 0;
   const now = Date.now();
   for(const o of all){
-    // Solo cancelar si estaba confirmado (clientes no pueden cancelar pendientes)
-    if(idSet.has(String(o.id)) && o.status === 'confirmed'){
+    // Cancelar pedidos confirmados o pendientes
+    if(idSet.has(String(o.id)) && o.status !== 'canceled'){
       o.status = 'canceled';
       o.canceledAt = now;
       changed++;

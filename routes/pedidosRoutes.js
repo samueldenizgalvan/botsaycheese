@@ -23,7 +23,7 @@ router.post('/:id/confirm', maybeTenant, async (req,res)=>{
       if (phone) {
         const fecha = (out?.fields?.fecha) ? ` para el ${out.fields.fecha}` : '';
         const sched = cfg?.messages?.pickup_schedule ? `\n\n${cfg.messages.pickup_schedule}` : '';
-        const msg = `¡Hola${name?` ${name}`:''}! 🎉\nHemos confirmado tu pedido${fecha}. ✅\nGracias por confiar en nosotros. 🧁🥳${sched}`;
+        const msg = `¡Hola${name?` ${name}`:''}! 🎉\nHemos confirmado tu pedido${fecha}. ✅\nGracias por confiar en nosotros. Recuerda que los pagos son a la recogida en efectivo o tarjeta 🧁🥳${sched}`;
         await wa.sendMessage(req.tenantId, phone, msg).catch(()=>{});
       }
     } catch(e){ /* silent */ }
