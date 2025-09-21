@@ -355,7 +355,7 @@ function buildMenu(cfg){
 			'2) Cancelar un pedido ❌',
 			'3) Modificar un pedido ✏️',
 			'4) ¿Dónde estamos? 📍',
-			'5) Dejar una reseña ⭐\n'
+			'5) Información ℹ️\n'
 		);
 		const allowedSizes = getAllowedSizes(cfg);
 		const sizes=(allowedSizes||[]).map(s=>`- ${s.label||s.id}: ${s.price??''}`.trim()).join('\n'); if(sizes) lines.push('Tamaños:',sizes);
@@ -404,12 +404,15 @@ function buildOrderItem(conv, cfg){
 	const sizeRec = Array.isArray(cfg.catalog?.sizes)? cfg.catalog.sizes.find(s=> String(s.id).toLowerCase()===tamanoId) : null;
 	const precioUnit = Number((sizeRec && sizeRec.price != null) ? sizeRec.price : (precioMap[tamanoId])) || 0;
 	const subtotal = precioUnit * (cantidad || 0);
+	const baseSabores = Array.isArray(conv.data?.sabores) ? conv.data.sabores : [];
+	const distrib = Array.isArray(conv.data?.sabores_distribucion) ? conv.data.sabores_distribucion.map(d=>({ count:Number(d.count)||0, flavor:d.flavor })) : null;
 	return {
-		tamano: tamanoId,
+		tamano: tamanoId, // corregido (antes 'amano')
 		label: conv.selectedSize?.label || tamanoId,
 		type: conv.selectedSize?.type || 'entera',
 		cantidad,
-		sabores: Array.isArray(conv.data?.sabores) ? conv.data.sabores : [],
+		sabores: baseSabores,
+		sabores_distribucion: distrib || undefined,
 		fecha: conv.data?.fecha || '',
 		observacion: conv.data?.observacion || '',
 		precioUnit,
@@ -423,15 +426,25 @@ function summarizeItems(conv, cfg, msgs){
 	if(items.length){
 		lines.push('Resumen del pedido:');
 		items.forEach((it, idx)=>{
-			const saboresTexto = it.sabores_por_porcion
-				? it.sabores_por_porcion.map((arr,i)=>`${i+1}) ${arr.join(', ')}`).join(' | ')
-				: (Array.isArray(it.sabores) ? it.sabores.join(', ') : '');
+			let saboresTexto;
+			if(Array.isArray(it.sabores_distribucion) && it.sabores_distribucion.length){
+				saboresTexto = it.sabores_distribucion.map(d=>`${d.flavor} x${d.count}`).join(', ');
+			} else if(it.sabores_por_porcion){
+				saboresTexto = it.sabores_por_porcion.map((arr,i)=>`${i+1}) ${arr.join(', ')}`).join(' | ');
+			} else {
+				saboresTexto = Array.isArray(it.sabores) ? it.sabores.join(', ') : '';
+			}
 			const label = it.label || it.tamano;
 			const obs = it.observacion ? ` • Obs: ${it.observacion}` : '';
 			lines.push(`${idx+1}) ${label} x${it.cantidad} • Sabores: ${saboresTexto || '-' }${obs} • Subtotal: ${it.total||0}€`);
 		});
 	}
 	const total = Number(conv.items?.reduce((acc,it)=> acc + (Number(it.total)||0), 0) || conv.total || 0);
+	// Añadir fecha con día si existe en conv.data
+	if(conv.data && conv.data.fecha){
+		const fechaLinea = formatFechaWithDay(conv);
+		if(fechaLinea) lines.push(`Fecha recogida: ${fechaLinea}`);
+	}
 	const totalLine = (msgs?.total_line || `Total: ${total}€`);
 	lines.push(totalLine);
 	return lines.join('\n');
@@ -443,10 +456,10 @@ function buildConfirmKey(items, data){
 		const total = Array.isArray(items) ? items.reduce((a,it)=> a + (Number(it.total)||0), 0) : Number(data?.total||0) || 0;
 		const fecha = String(data?.fecha||'');
 		const shape = Array.isArray(items) ? items.map(it=>({
-			l: it.label||it.tamano||'',
+				l: it.label||it.tamano||it.amano||'',
 			c: Number(it.cantidad||0)||0,
 			t: Number(it.total||0)||0,
-			s: Array.isArray(it.sabores)? it.sabores.join(','): (Array.isArray(it.sabores_por_porcion)? it.sabores_por_porcion.flat().join(',') : '')
+			s: Array.isArray(it.sabores_distribucion)? it.sabores_distribucion.map(d=>`${d.count}*${d.flavor}`).join('|') : (Array.isArray(it.sabores)? it.sabores.join(','): (Array.isArray(it.sabores_por_porcion)? it.sabores_por_porcion.flat().join(',') : ''))
 		})) : [];
 		const keyObj = { fecha, total, n: shape.length, shape };
 		return JSON.stringify(keyObj);
@@ -461,9 +474,14 @@ function summarizeStoredOrder(order){
 		const lines = [];
 		if(items && items.length){
 			items.forEach((it, idx)=>{
-				const saboresTexto = it.sabores_por_porcion
-					? it.sabores_por_porcion.map((arr,i)=>`${i+1}) ${arr.join(', ')}`).join(' | ')
-					: (Array.isArray(it.sabores) ? it.sabores.join(', ') : '');
+				let saboresTexto;
+				if(Array.isArray(it.sabores_distribucion) && it.sabores_distribucion.length){
+					saboresTexto = it.sabores_distribucion.map(d=>`${d.flavor} x${d.count}`).join(', ');
+				} else if(it.sabores_por_porcion){
+					saboresTexto = it.sabores_por_porcion.map((arr,i)=>`${i+1}) ${arr.join(', ')}`).join(' | ');
+				} else {
+					saboresTexto = Array.isArray(it.sabores) ? it.sabores.join(', ') : '';
+				}
 				const label = it.label || it.tamano || '';
 				const obs = it.observacion ? ` • Obs: ${it.observacion}` : '';
 				const subtotal = (typeof it.total === 'number') ? ` • Subtotal: ${it.total}€` : '';
@@ -697,7 +715,7 @@ async function manejarMensajeTenant(a, b, c){
 	// Greeting logic: mostrar menú SOLO ante palabras clave explícitas (no envíos proactivos)
 	try{
 		const sess = session;
-		const greetWords = /^(menu|menú|pedido|hola|buenos dias|buenos días)$/i;
+		const greetWords = /^(menu|menú|hola|buenos dias|buenos días)$/i; // retirado 'pedido' para que inicie flujo
 		if(greetWords.test(lower) && (conv && conv.stage === 'none')){
 			if(shouldShowFullMenu(sess, lower)){
 				await sendWelcomeAndMenu(client, msg.from, cfg);
@@ -715,12 +733,17 @@ async function manejarMensajeTenant(a, b, c){
 		const backWords = new Set(['atrás','atras']);
 		const isMenuKeyword = (lower==='menu' || lower==='menú' || lower==='inicio');
 		// Allow exact greeting keywords to show menu even during active flow
-		const greetKeywords = new Set(['hola','buenas','buenos dias','buenos días','pedido']);
+		const greetKeywords = new Set(['hola','buenas','buenos dias','buenos días']);
 		const isGreetingOnly = (lower==='hola' || lower==='buenas');
 
 		// Manual: "cancelar <telefono>" / "anular <telefono>" / "borrar <telefono>"
 		const manualCancel = /^\s*(cancel(?:ar)?|anular|borrar)\s+([^]+)$/i.exec(text || '');
 			if(manualCancel){
+				// Si el usuario escribe exactamente 'cancelar pedido' (sin más dígitos) queremos tratarlo como cancelación global, no como cancelación por teléfono.
+				const rawCandidate = (manualCancel[2]||'').trim().toLowerCase();
+				if(rawCandidate === 'pedido'){
+					// Dejamos que más abajo lo maneje el bloque de cancelSet (lower ya contiene la frase completa normalizada)
+				} else {
 			const raw = manualCancel[2] || '';
 			const digits = raw.replace(/\D/g,'');
 			const tel9 = digits.slice(-9);
@@ -747,6 +770,7 @@ async function manejarMensajeTenant(a, b, c){
 						try { runtime.setState(tenantId, phone, { stage:'none', data:{}, flow:'none', welcomed: menuState && menuState.welcomed, lastWelcomeAt: menuState && menuState.lastWelcomeAt }); } catch{}
 				await sendWelcomeAndMenu(client, msg.from, cfg);
 				return null;
+					}
 			}
 			try {
 				const sess = await convStore.readConv(tenantId, phone) || {};
@@ -1053,6 +1077,105 @@ async function manejarMensajeTenant(a, b, c){
       return null;
     }
 
+		// Option 5: Información general (bloque amigable)
+		// Respuesta rápida: si el usuario menciona "sabor" en cualquier frase estando idle, enviar lista de sabores
+		if(isIdle){
+			const rawMsg = (msg.body||'').toLowerCase();
+			if(/\bsabor(es)?\b/.test(rawMsg)){
+				const saboresTxt = 'Sabores disponibles:\n* Clásica 🍰\n* Lotus 🍪\n* Pistacho 🟢\n* Oreo 🔵\n* Nocilla 🍫\n* Gofio 🌾\n* Mango-Maracuyá 🥭\n* Hippo 🦛\n* Caramelo Salado 🦅\n\nEscribe *menu* para más opciones 📋';
+				try {
+					const preview = saboresTxt.slice(0,80); console.log('[SEND]', phone, preview);
+					await sendSafe(client, msg.from, saboresTxt);
+				} catch{}
+				try { runtime.setState(tenantId, phone, { ...conv, flow:'info' }); } catch{}
+				return null;
+			}
+			if(/\bgracias+\b/.test(rawMsg)){
+				const thanksTxt = '¡Gracias a ti! 🙌 Nos alegra tu mensaje. Cualquier duda aquí estamos. Escribe *menu* para ver opciones.';
+				try {
+					const preview = thanksTxt.slice(0,80); console.log('[SEND]', phone, preview);
+					await sendSafe(client, msg.from, thanksTxt);
+				} catch{}
+				// No cambiamos el flow; mantenemos idle
+				return null;
+			}
+		}
+		if(isIdle && ['5','info','informacion','información'].includes(lower)){
+			const infoBlock = (
+`Escribe menu para volver al menú.
+
+⏰ Horarios de recogida:
+• Miércoles a Domingo: 11:00–13:00
+• Viernes por la tarde: 18:00–20:00
+(No trabajamos Lunes ni Martes)
+
+📦 Antelación:
+• Encargos: mínimo 3 días
+• Agenda abierta hasta 3 meses
+
+🎂 Decoraciones:
+• No añadimos decorativos, toppers ni textos tipo “feliz cumpleaños”
+• Solo elaboramos el producto base
+
+🧁 Porciones:
+• Las porciones (raciones sueltas) solo se ofertan presencialmente fines de semana de 11 a 13 sin reserva
+• No se encargan por WhatsApp
+
+📏 Tamaños y precios:
+• Tarta (10–12 raciones, 1.5 Kg) – 35€
+• Cajitas (400 g) – 12€
+
+🍰 Sabores disponibles:
+• Clásica 🍰
+• Lotus 🍪
+• Pistacho 🟢
+• Oreo 🔵
+• Nocilla 🍫
+• Gofio 🌾
+• Mango-Maracuyá 🥭
+• Hippo 🦛
+• Caramelo Salado 🦅
+
+✅ Cómo pedir:
+
+Escribe pedido
+
+Elige tamaño
+
+Indica sabores (ejemplo: “2 oreo, 1 clásica…”)
+
+Fecha (DD-MM, mínimo 3 días vista)
+
+Observaciones (opcional)
+
+❌ Cancelar / modificar:
+• Escribe cancelar en cualquier momento
+• Modificar: opción 3 (si faltan ≥3 días)
+
+📍 Dirección:
+C. Abián, 4, 35212 Marpequeña, Las Palmas
+(También accesible en la opción 4)
+
+🔁 Comandos rápidos:
+• atras → retroceder un paso
+• cancelar → abandonar pedido
+• menu → volver al menú
+
+🥚 Información nutricional:
+• Huevo ✅
+• Lactosa ✅
+• Gluten ⚠️
+• Azúcar ⚠️
+• Todo pasteurizado ✅`);
+			{
+				const preview = String(infoBlock).slice(0, 80);
+				console.log('[SEND]', phone, preview);
+				await sendSafe(client, msg.from, infoBlock);
+			}
+			try { runtime.setState(tenantId, phone, { ...conv, flow: 'info' }); } catch{}
+			return null;
+		}
+
 		// Option 4: Reviews
 		if(isIdle && ['4','reseña','resena','review','opinión','opinion'].includes(lower)){
 			const link = cfg.review_link || 'https://g.page/r/CWjO3W1N3j7lEBM/review';
@@ -1073,9 +1196,48 @@ async function manejarMensajeTenant(a, b, c){
     }
   } catch(e){ console.error(`[${tenantId}] menu/delete flow error`, e); }
 
+	// --- Intercepción específica de 'atras' para editar SOLO la fecha sin retroceder a sabores ---
+	try {
+		const backSetInline = new Set(['atras','atrás']);
+		if(backSetInline.has(lower) && (conv.stage==='ask_obs' || conv.stage==='ask_more')){
+			// Si ya hay fecha y queremos re-editarla
+			if(conv.data && conv.data.fecha){
+				// Marcar flags de edición de fecha
+				conv.editingDate = true;
+				conv.returnStage = conv.stage; // volveremos aquí tras nueva fecha
+				// No alterar items todavía, solo cambiamos stage
+				conv.stage = 'ask_date';
+				runtime.setState(tenantId, phone, conv);
+				try {
+					const sess = await convStore.readConv(tenantId, phone) || {};
+					sess.state = { flow:'new_order', stage:'ask_fecha' };
+					sess.lastAsk = { stage:'ask_fecha', ts: Date.now() };
+					await convStore.writeConv(tenantId, phone, sess);
+				} catch{}
+				const base = msgs.ask_fecha || buildAskDatePrompt();
+				const sched = cfg.messages?.pickup_schedule ? ('\n\n' + cfg.messages.pickup_schedule) : '';
+				await sendPrompt(tenantId, client, msg.from, session, base + sched, { bypassDebounce:true });
+				return null; // cortar flujo antes de navegación global
+			}
+		}
+	} catch{}
+
 	// Back navigation (historial global)
 	const backSet = new Set(['atras','atrás','volver','back']);
 	if(backSet.has(lower) && conv.stage && conv.stage!=='none'){
+		// Caso especial: si estamos en 'confirm', volver solo a 'ask_more' para añadir otro ítem
+		if(conv.stage==='confirm'){
+			conv.stage = 'ask_more';
+			try { runtime.setState(tenantId, phone, conv); } catch{}
+			try {
+				const sessRead = await convStore.readConv(tenantId, phone) || {};
+				sessRead.state = { flow:'new_order', stage:'ask_mas' };
+				sessRead.lastAsk = { stage:'ask_mas', ts: Date.now() };
+				await convStore.writeConv(tenantId, phone, sessRead);
+			} catch{}
+			await sendPrompt(tenantId, client, msg.from, session, msgs.ask_mas || '¿Quieres añadir algo más a tu pedido? (sí/no) ➕', { bypassDebounce:true });
+			return null;
+		}
 		// Cargar historial de session si no está en memoria
 		try {
 			const sessRead = await convStore.readConv(tenantId, phone) || {};
@@ -1142,7 +1304,7 @@ async function manejarMensajeTenant(a, b, c){
 					.replace('{tamano}',conv.selectedSize?.label||conv.data.tamano||'')
 					.replace('{cantidad}',String(cantidad))
 					.replace('{sabores}',(conv.data.sabores||[]).join(', '))
-					.replace('{fecha}',conv.data.fecha||'')
+					.replace('{fecha}',formatFechaWithDay(conv))
 					.replace('{total}',String(conv.total||0));
 				return summary+'\n'+(msgs.confirm_yesno||'Responde sí o no.');
 			}
@@ -1150,7 +1312,7 @@ async function manejarMensajeTenant(a, b, c){
 	}
 
 	// Cancelación global -> mover a "cancelados" (no borrar)
-	const cancelSet=new Set([...(keywords.cancel||[]),'cancel','cancelar','anular'].map(norm));
+	const cancelSet=new Set([...(keywords.cancel||[]),'cancel','cancelar','anular','cancelar pedido'].map(norm));
 		if(cancelSet.has(lower)){
 				try{
 					// Solo guardar en cancelados si hay al menos un ítem real en el pedido
@@ -1315,34 +1477,55 @@ if(conv.stage==='none'){
 				if(!raw){
 					return buildAskSaboresPrompt(cfg);
 				}
-				// Detect distribution pattern like: "1 oreo 2 mango 1 lotus 1 clásica"
-				// Strategy: tokenize, group as (count, flavor words until next count or end)
-				const tokens = raw.split(/\s+/).filter(Boolean);
+				// Detect distribution pattern.
+				// Soportar dos formatos:
+				// 1) Espacios: "1 oreo 2 mango 1 lotus 1 clásica"
+				// 2) Con comas: "1 oreo, 2 mango, 1 lotus, 1 clásica"
 				let distribution = [];
-				let i=0; let validDist=true; let totalDist=0;
-				while(i < tokens.length){
-					const numTok = tokens[i];
-					if(!/^\d+$/.test(numTok)){ validDist=false; break; }
-					const count = Number(numTok);
-					i++;
-					let flavorWords=[];
-					while(i < tokens.length && !/^\d+$/.test(tokens[i])){ flavorWords.push(tokens[i]); i++; }
-					if(flavorWords.length===0){ validDist=false; break; }
-					const flavorNameRaw = flavorWords.join(' ');
-					const normName = normalize(flavorNameRaw);
-					// Resolve against canonical map by scanning keys
-					let matchedCanonical = null;
-					for(const [k,v] of fmap.entries()){
-						if(k===normName){ matchedCanonical = v; break; }
+				let totalDist=0;
+				let parsed=false;
+				// Intento A: formato con comas -> dividir por comas, analizar cada segmento "<num> <sabor...>"
+				if(raw.includes(',')){
+					const parts = raw.split(',').map(p=>p.trim()).filter(Boolean);
+					let ok=true;
+					for(const part of parts){
+						const m = part.match(/^(\d+)\s+(.+)$/);
+						if(!m){ ok=false; break; }
+						const count = Number(m[1]);
+						const flavorNameRaw = m[2].trim();
+						const normName = normalize(flavorNameRaw);
+						let matchedCanonical=null;
+						for(const [k,v] of fmap.entries()){ if(k===normName){ matchedCanonical=v; break; } }
+						if(!matchedCanonical){ ok=false; break; }
+						distribution.push({ count, flavor: matchedCanonical });
+						totalDist += count;
+						if(distribution.length>50){ ok=false; break; }
 					}
-					if(!matchedCanonical){
-						validDist=false; break;
-					}
-					distribution.push({ count, flavor: matchedCanonical });
-					totalDist += count;
-					if(distribution.length>50){ validDist=false; break; }
+					if(ok && distribution.length){ parsed=true; }
 				}
-				if(validDist && distribution.length>0){
+				// Intento B (si no se parseó con comas): tokens por espacios
+				if(!parsed){
+					const tokens = raw.split(/\s+/).filter(Boolean);
+					let i=0; let validDist=true; distribution=[]; totalDist=0;
+					while(i < tokens.length){
+						const numTok = tokens[i];
+						if(!/^\d+$/.test(numTok)){ validDist=false; break; }
+						const count = Number(numTok); i++;
+						let flavorWords=[];
+						while(i < tokens.length && !/^\d+$/.test(tokens[i])){ flavorWords.push(tokens[i]); i++; }
+						if(flavorWords.length===0){ validDist=false; break; }
+						const flavorNameRaw = flavorWords.join(' ');
+						const normName = normalize(flavorNameRaw);
+						let matchedCanonical = null;
+						for(const [k,v] of fmap.entries()){ if(k===normName){ matchedCanonical = v; break; } }
+						if(!matchedCanonical){ validDist=false; break; }
+						distribution.push({ count, flavor: matchedCanonical });
+						totalDist += count;
+						if(distribution.length>50){ validDist=false; break; }
+					}
+					if(validDist && distribution.length){ parsed=true; }
+				}
+				if(parsed && distribution.length>0){
 					// Save provisional distribution and ask for confirmation
 					conv.data.sabores_distribucion = distribution;
 					conv.data.sabores = distribution.map(d=>d.flavor); // base list (may include repeats logically)
@@ -1492,6 +1675,25 @@ if(conv.stage==='none'){
 			conv.data.fecha = `${pad(dt.getDate())}-${pad(dt.getMonth()+1)}`;
 			conv.data.fecha_dow = dayNameEs(dt);
 			console.log(`[LOG] [${tenantId}] Guardando fecha para ${phone}: "${conv.data.fecha}"`);
+			// Si estamos re-editando fecha (editingDate), volver al stage anterior almacenado
+			if(conv.editingDate && conv.returnStage){
+				const target = conv.returnStage;
+				delete conv.editingDate; delete conv.returnStage;
+				conv.stage = target;
+				runtime.setState(tenantId, phone, conv);
+				try {
+					const sess = await convStore.readConv(tenantId, phone) || {};
+					sess.state = { flow:'new_order', stage: internalToSessionStage(target) };
+					sess.lastAsk = { stage: internalToSessionStage(target), ts: Date.now() };
+					await convStore.writeConv(tenantId, phone, sess);
+				} catch{}
+				let prompt;
+				if(target==='ask_obs') prompt = msgs.ask_obs||'Observaciones (escribe "no" si no hay)';
+				else if(target==='ask_more') prompt = msgs.ask_mas || '¿Quieres añadir algo más a tu pedido? (sí/no) ➕';
+				else prompt = msgs.ask_obs||'Observaciones (escribe "no" si no hay)';
+				await sendPrompt(tenantId, client, msg.from, session, prompt, { bypassDebounce:true });
+				return null;
+			}
 			const newState = { ...conv, stage: 'ask_obs' };
 			runtime.setState(tenantId, phone, newState);
 			console.log('[STATE]', phone, '->', newState.stage);
@@ -1500,6 +1702,19 @@ if(conv.stage==='none'){
 			return null;
 		}
 		case 'ask_obs': {
+			// Permitir volver a la fecha si el usuario escribe atras en observaciones
+			if(/^(atras|atrás)$/i.test(lower)){
+				// Solo retroceder si ya teníamos fecha para re-editarla
+				delete conv.data.fecha; // forzar reentrada
+				delete conv.data.fecha_dow;
+				const prevState = { ...conv, stage: 'ask_date' };
+				runtime.setState(tenantId, phone, prevState);
+				try { await saveSessionState(tenantId, phone, 'ask_date'); } catch {}
+				const base = msgs.ask_fecha || buildAskDatePrompt();
+				const sched = cfg.messages?.pickup_schedule ? ('\n\n' + cfg.messages.pickup_schedule) : '';
+				await sendPrompt(tenantId, client, msg.from, session, base + sched, { bypassDebounce:true });
+				return null;
+			}
 			conv.data.observacion = (['no','ninguna'].includes(lower)) ? '' : text.trim();
 			console.log(`[LOG] [${tenantId}] Guardando observación para ${phone}: "${conv.data.observacion}"`);
 			if(conv.data.observacion.length>150) return 'Observación muy larga (máx 150). Indica otra más corta:';
@@ -1520,6 +1735,19 @@ if(conv.stage==='none'){
 			return null;
 		}
 		case 'ask_more': {
+			// Si escribe atras aquí y hay fecha, permitir volver a editar la fecha antes de añadir más items
+			if(/^(atras|atrás)$/i.test(lower)){
+				// Volver a ask_date sin perder items ya confirmados
+				delete conv.data.fecha;
+				delete conv.data.fecha_dow;
+				const prevState = { ...conv, stage: 'ask_date' };
+				runtime.setState(tenantId, phone, prevState);
+				try { await saveSessionState(tenantId, phone, 'ask_date'); } catch {}
+				const base = msgs.ask_fecha || buildAskDatePrompt();
+				const sched = cfg.messages?.pickup_schedule ? ('\n\n' + cfg.messages.pickup_schedule) : '';
+				await sendPrompt(tenantId, client, msg.from, session, base + sched, { bypassDebounce:true });
+				return null;
+			}
 			const yes = /^\s*(si|sí|s|yes|y)\s*$/i.test(lower);
 			const no  = /^\s*(no|n)\s*$/i.test(lower);
 				if(!yes && !no){

@@ -98,13 +98,14 @@ function calcTotal(cfg, tamano, cantidad){
  * @returns {string}
  */
 function buildReminderText(cfg, order){
-  const nombre  = '';
-  const tamano  = order?.fields?.tamano;
-  const sabores = (order?.fields?.sabores || []).join(', ');
-  const cantidad= order?.fields?.cantidad || order?.fields?.porciones || order?.fields?.unidades || 1;
-  const fecha   = order?.fields?.fecha;
-  const total   = order?.total || calcTotal(cfg, tamano, cantidad);
-  return `¡Hola! 😊\nTe recordamos tu pedido para *mañana* (${fecha}) en *SayCheese By Nestor*.\n\n• Tamaño: *${tamano}*\n• Cantidad: *${cantidad}*\n• Sabores: *${sabores || '—'}*\n• Total aprox: *${total}€*\n\n📍 C. Abián, 4, 35212 Marpequeña, Las Palmas\n🕒 Recogida 11:00–13:00\nSi necesitas cambiar algo, respóndeme por aquí.\n¡Gracias por elegirnos! 🧀💛`;
+  const tamano   = order?.fields?.tamano;
+  const sabores  = (order?.fields?.sabores || []).join(', ');
+  const cantidad = order?.fields?.cantidad || order?.fields?.porciones || order?.fields?.unidades || 1;
+  const fecha    = order?.fields?.fecha;
+  const total    = order?.total || calcTotal(cfg, tamano, cantidad);
+  const brand    = (cfg && (cfg.brand || cfg.displayName)) || 'SayCheese By Nestor';
+  // Mensaje sin saludo inicial para evitar parecer bienvenida; solo recordatorio directo
+  return `Recordatorio de tu pedido para *mañana* (${fecha}) en *${brand}*:\n\n• Tamaño: *${tamano}*\n• Cantidad: *${cantidad}*\n• Sabores: *${sabores || '—'}*\n• Total aprox: *${total}€*\n\n📍 C. Abián, 4, 35212 Marpequeña, Las Palmas\n🕒 Recogida 11:00–13:00\n.`;
 }
 
 const api = {

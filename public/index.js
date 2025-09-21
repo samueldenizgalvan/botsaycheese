@@ -5,6 +5,10 @@
 const TENANT = window.CURRENT_TENANT || window.TENANT || 'samuel';
 const $id = (id) => document.getElementById(id);
 const setText = (id, txt) => { const el=$id(id); if(el) el.textContent = txt; };
+function safeEscape(sel){
+  try { if(window.CSS && typeof window.CSS.escape==='function') return window.CSS.escape(String(sel)); } catch{}
+  return String(sel).replace(/[^a-zA-Z0-9_\-]/g,'_');
+}
 
 // Toast minimal
 function toast(msg, type='info'){
@@ -66,6 +70,8 @@ function isFreshCanceled(order){
   try {
     if(!order) return false;
     if(String(order.status||'').toLowerCase() !== 'canceled') return false;
+    // Si es una cancelación originada por modificación (tiene replacedBy) mostrar siempre como fresh
+    if(order.replacedBy) return true;
     const id = String(order.id);
     if(seenCanceledIds.has(id)) return false;
     const ts = Number(order.canceledAt || order.createdAt || 0);
@@ -92,10 +98,13 @@ function setBadge(status){
   if(start){
     // Toggle label and action based on status
     const isReady = (s==='ready');
+    const isDisconnected = (s==='disconnected' || s==='error');
     start.textContent = isReady ? 'Apagar Bot' : 'Iniciar Bot';
     start.dataset.action = isReady ? 'stop' : 'start';
-    // Only disable while initializing states
-    start.disabled = ['initializing','waiting_qr','authenticated'].includes(s);
+    // Deshabilitar solo en transición inicial QR/auth
+    start.disabled = ['initializing','waiting_qr'].includes(s);
+    // Siempre permitir volver a iniciar si está desconectado
+    if(isDisconnected){ start.disabled = false; }
   }
 }
 async function fetchStatus(){
@@ -155,7 +164,7 @@ function switchTab(name){
   const tabs = document.querySelectorAll('.tabbar .tab');
   tabs.forEach(t=> t.classList.toggle('active', t.getAttribute('data-target')===name));
   const from = document.querySelector('.tabs-container .panel.active');
-  const to = document.querySelector(`.tabs-container .panel[data-name="${CSS.escape(String(name))}"]`);
+  const to = document.querySelector(`.tabs-container .panel[data-name="${safeEscape(String(name))}"]`);
   if(from === to) return;
   if(from){ from.classList.remove('active'); from.classList.add('leave-left'); setTimeout(()=> from.classList.remove('leave-left'), 350); }
   if(to){ to.classList.add('active'); }
@@ -166,8 +175,21 @@ function switchTab(name){
 }
 function wireTabs(){
   document.querySelectorAll('.tabbar .tab').forEach(btn=>{
-    btn.addEventListener('click', ()=> switchTab(btn.getAttribute('data-target')));
+    btn.addEventListener('click', ()=>{
+      const target = btn.getAttribute('data-target');
+      switchTab(target);
+      try { updateProductionButtonVisibility(); } catch{}
+    });
   });
+}
+
+function updateProductionButtonVisibility(){
+  const btn = document.getElementById('btnProduction');
+  if(!btn) return;
+  const active = document.querySelector('.tabbar .tab.active');
+  const name = active ? active.getAttribute('data-target') : 'pendientes';
+  // Solo visible en confirmados
+  btn.style.display = (name==='confirmados') ? 'inline-flex' : 'none';
 }
 
 // =========================
@@ -193,6 +215,8 @@ function renderCard(order){
   const isCanceled = String(order.status||'').toLowerCase()==='canceled';
   const isPending = String(order.status||'').toLowerCase()==='pending' || (!order.status);
   const isConfirmed = String(order.status||'').toLowerCase()==='confirmed';
+  const wasReplaced = isCanceled && !!order.replacedBy;
+  const isModified = !!order.modified || !!order.replaces;
   if(isCanceled){
     const fresh = isFreshCanceled(order);
     card.className = 'order-card canceled ' + (fresh ? 'is-fresh highlight-new' : 'dismissed');
@@ -213,14 +237,22 @@ function renderCard(order){
     const rows = items.map((it,idx)=>{
       const label = it.label || it.tamano || '';
       const cant = it.cantidad != null ? it.cantidad : '';
-      const sab = Array.isArray(it.sabores) ? it.sabores.join(', ') : (Array.isArray(it.sabores_por_porcion)? it.sabores_por_porcion.map((arr,i)=>`${i+1}) ${arr.join(', ')}`).join(' | ') : '');
+      let sab;
+      if(Array.isArray(it.sabores_distribucion) && it.sabores_distribucion.length){
+        sab = it.sabores_distribucion.map(d=>`${safe(d.flavor)} x${safe(String(d.count))}`).join(', ');
+      } else if (Array.isArray(it.sabores)) {
+        sab = it.sabores.join(', ');
+      } else if (Array.isArray(it.sabores_por_porcion)) {
+        sab = it.sabores_por_porcion.map((arr,i)=>`${i+1}) ${arr.join(', ')}`).join(' | ');
+      } else {
+        sab = '';
+      }
       const sub = (typeof it.total === 'number') ? `${it.total}€` : '';
       const obs = it.observacion ? ` • Obs: ${safe(String(it.observacion))}` : '';
       return `<div class="row"><strong>${idx+1})</strong> <span>${safe(label)} x${safe(String(cant))} • ${safe(sab||'-')}${sub?` • ${safe(sub)}`:''}${obs}</span></div>`;
     }).join('');
     itemsHtml = `<div class="rows">${rows}</div>`;
   } else {
-    // Fallback to legacy single fields
     const sabores = joinSabores(order);
     const cantidad = getCantidad(order);
     const tamano = (order?.fields?.tamano ?? order?.tamano ?? '') || '';
@@ -231,16 +263,29 @@ function renderCard(order){
     `;
   }
 
+  let statusLabel;
+  if(isCanceled){
+    if(wasReplaced){
+      statusLabel = 'Cancelación modificación';
+    } else {
+      statusLabel = 'Cancelado';
+    }
+  } else if(isConfirmed){
+    statusLabel = 'Confirmado';
+  } else {
+    statusLabel = isModified ? 'Modificado y pendiente' : 'Pendiente';
+  }
   card.innerHTML = `
     <div class="row top">
       <span class="date">${safe(fmtDate(displayTs))}</span>
-  <span class="status ${isCanceled?'canceled':(isConfirmed?'confirmed':'pending')}">${isCanceled?'Cancelado':(isConfirmed?'Confirmado':(order.modified?'Modificado y pendiente':'Pendiente'))}</span>
+      <span class="status ${isCanceled?'canceled':(isConfirmed?'confirmed':'pending')} ${wasReplaced?'modified-cancel':''} ${(!isCanceled && !isConfirmed && isModified)?'modified-pending':''}">${safe(statusLabel)}</span>
     </div>
     <div class="row"><strong>Tel:</strong> <span>${safe(telefono)}</span></div>
     ${(isPending||isConfirmed) && fechaRecogida ? `<div class="row"><strong>Recogida:</strong> <span>${safe(fechaRecogida)}</span></div>` : ''}
     
     ${itemsHtml}
     ${total!=null? `<div class="row"><strong>Total:</strong> <span>${safe(String(total))}€</span></div>`:''}
+    ${wasReplaced ? `<div class="row replaced"><strong>Reemplazado por:</strong> <span>#${safe(String(order.replacedBy))}</span></div>`:''}
     ${(!items || !items.length) && obs ?`<div class="row"><strong>Obs.:</strong> <span>${safe(obs)}</span></div>`:''}
     <div class="actions"></div>
   `;
@@ -271,33 +316,16 @@ function renderCard(order){
     };
     if(!isConfirmed && !isCanceled){ actions.appendChild(btnConfirm); }
 
-  // Cancel button: only for confirmed orders (clients can cancel only confirmed)
-  if(isConfirmed){
+  // Cancel button: allow for pending or confirmed
+  if(isConfirmed || isPending){
       const btnCancel = document.createElement('button');
       btnCancel.className = 'btn btn-warning';
       btnCancel.textContent='Cancelar';
       btnCancel.onclick = async ()=>{
-        const prev=btnCancel.disabled; btnCancel.disabled=true;
-        try{
-          const res = await apiFetch(`/api/pedidos/${encodeURIComponent(order.id)}/cancel`, { method:'POST' });
-          const { ok, order:ord } = res||{};
-          if(!ok||!ord) throw new Error('cancel_failed');
-          removeFromCaches(order.id);
-          const el = document.querySelector(`[data-card-id="${CSS.escape(String(order.id))}"]`);
-          if(el) el.remove();
-          CACHE.canceled.push(ord);
-          addCanceledCard(ord);
-        } catch{ toast('No se pudo cancelar','err'); }
-        finally { btnCancel.disabled=prev; }
+        if(btnCancel.disabled) return; const prev=btnCancel.disabled; btnCancel.disabled=true;
+        try { await cancelOrder(order.id); } finally { btnCancel.disabled=prev; }
       };
       actions.appendChild(btnCancel);
-    } else if (isPending) {
-      // Optional UX: explain restriction if they try to cancel pending
-      const btnInfo = document.createElement('button');
-      btnInfo.className = 'btn';
-      btnInfo.textContent='Cancelar';
-      btnInfo.onclick = ()=> toast('Solo se pueden cancelar pedidos confirmados', 'info');
-      actions.appendChild(btnInfo);
     }
 
     // Delete button for pending and confirmed
@@ -339,8 +367,92 @@ async function fetchPedidos(estado='pending'){
   return pedidos;
 }
 
+// =========================
+// Helpers fecha / cache confirmados
+// =========================
+function ddmmToYmd(ddmm){
+  const m = String(ddmm||'').trim().match(/^(\d{2})[\/-](\d{2})(?:[\/-](\d{2,4}))?$/);
+  if(!m) return null;
+  const now=new Date();
+  const y = m[3] ? (m[3].length===2 ? 2000+Number(m[3]) : Number(m[3])) : now.getFullYear();
+  return `${y}-${m[2]}-${m[1]}`;
+}
+async function ensureConfirmedCache(){
+  if(Array.isArray(CACHE?.confirmed) && CACHE.confirmed.length) return CACHE.confirmed;
+  const arr = await fetchPedidos('confirmed');
+  CACHE.confirmed = Array.isArray(arr)? arr:[];
+  return CACHE.confirmed;
+}
+async function getConfirmedByDate(ymd){
+  const confirmed = await ensureConfirmedCache();
+  return confirmed.filter(o=>{
+    const raw = o?.fields?.fecha || o?.fecha || '';
+    const cmp = ddmmToYmd(raw);
+    return cmp === ymd;
+  });
+}
+
+function summarizeProduction(orders){
+  const out = { tartas:{ total:0, porSabor:{} }, cajitas:{ total:0, porSabor:{} }, rows:[] };
+  const add = (tipo, sabor, qty)=>{
+    const bucket = out[tipo]; bucket.total += qty; bucket.porSabor[sabor] = (bucket.porSabor[sabor]||0)+qty;
+  };
+  for(const o of orders){
+    const items = Array.isArray(o.items) ? o.items : (Array.isArray(o.fields?.items) ? o.fields.items : []);
+    for(const it of (items||[])){
+      const tipo = (it.type==='cajitas' || it.tamano==='cajitas' || /cajitas/i.test(it.label||'')) ? 'cajitas' : 'tartas';
+      const dist = Array.isArray(it.sabores_distribucion) ? it.sabores_distribucion : null;
+      if(dist && dist.length){
+        for(const d of dist){ add(tipo, String(d.flavor), Number(d.count)||0); }
+      }else if(Array.isArray(it.sabores) && (it.cantidad!=null)){
+        add(tipo, 'Variado', Number(it.cantidad)||0);
+      }else{
+        add(tipo, '—', Number(it.cantidad||1));
+      }
+    }
+  }
+  for(const [sabor,qty] of Object.entries(out.tartas.porSabor)) out.rows.push({ tipo:'Tarta', sabor, cantidad:qty });
+  for(const [sabor,qty] of Object.entries(out.cajitas.porSabor)) out.rows.push({ tipo:'Cajitas', sabor, cantidad:qty });
+  out.rows.sort((a,b)=> a.tipo===b.tipo ? a.sabor.localeCompare(b.sabor) : (a.tipo>b.tipo?1:-1));
+  return out;
+}
+
+function renderProduction(sum){
+  const el=$id('prodResult'); if(!el) return;
+  const tot = `
+    <h4>Totales</h4>
+    <ul>
+      <li>Tartas: ${sum.tartas.total}</li>
+      <li>Cajitas: ${sum.cajitas.total}</li>
+    </ul>`;
+  const rows = sum.rows.map(r=>`<tr><td>${r.tipo}</td><td>${r.sabor}</td><td>${r.cantidad}</td></tr>`).join('');
+  el.innerHTML = tot + `
+    <h4>Por sabor</h4>
+    <div class="table-wrap">
+      <table><thead><tr><th>Tipo</th><th>Sabor</th><th>Cantidad</th></tr></thead>
+      <tbody>${rows || '<tr><td colspan="3">Sin datos</td></tr>'}</tbody></table>
+    </div>
+    <div class="actions">
+      <button id="prodCopy" class="btn">Copiar</button>
+    </div>`;
+  $id('prodCopy')?.addEventListener('click', ()=>{
+    const tsv = ['Tipo\tSabor\tCantidad', ...sum.rows.map(r=>`${r.tipo}\t${r.sabor}\t${r.cantidad}`)].join('\n');
+    navigator.clipboard.writeText(tsv).then(()=> toast('Copiado ✅','ok')).catch(()=> toast('No se pudo copiar','err'));
+  });
+}
+
 // Local cache for filtering without re-fetch
 let CACHE = { pending: [], confirmed: [], canceled: [] };
+
+// Utility: remove order by id from all caches
+function removeFromCaches(id){
+  const sid = String(id);
+  CACHE.pending = CACHE.pending.filter(o=> String(o.id)!==sid);
+  CACHE.confirmed = CACHE.confirmed.filter(o=> String(o.id)!==sid);
+  // (Mantener filtrado centralizado aquí; líneas sueltas eliminadas)
+  CACHE.canceled = CACHE.canceled.filter(o=> String(o.id)!==sid);
+  return true;
+}
 
 // (Ya movido arriba) Persistencia de cancelados vistos: ver definiciones previas
 function applyPhoneFilter(arr){
@@ -394,6 +506,18 @@ async function renderPedidos(){
     CACHE.pending = Array.isArray(pending)? pending:[];
     CACHE.confirmed = Array.isArray(confirmed)? [...confirmed].sort((a,b)=> parsePickupTs(a) - parsePickupTs(b)) : [];
     CACHE.canceled = Array.isArray(canceled)? canceled:[];
+    // Dev-only mock: si vacío y en localhost, intentar cargar mock de confirmados
+    try{
+      if(CACHE.confirmed.length===0 && (location.hostname==='localhost' || location.hostname==='127.0.0.1')){
+        const mockResp = await fetch('/public/pedidos_confirmados_mock.json', { cache:'no-store' });
+        if(mockResp.ok){
+          const mockData = await mockResp.json().catch(()=>[]);
+          if(Array.isArray(mockData) && mockData.length){
+            CACHE.confirmed = mockData.map(o=>({ ...o }));
+          }
+        }
+      }
+    }catch{}
     // Rellenamos listas sin filtrar inicialmente y aplicamos filtro a la activa
     clearAndFill('list-pendientes', CACHE.pending);
     clearAndFill('list-confirmados', CACHE.confirmed);
@@ -439,25 +563,24 @@ function startEvents(){
       }
       // Dedupe: elimina cualquier rastro previo del id en caches y luego inserta/actualiza en pending
       const sid = String(ord.id);
-      CACHE.pending = CACHE.pending.filter(o=> String(o.id)!==sid);
-      CACHE.confirmed = CACHE.confirmed.filter(o=> String(o.id)!==sid);
-      CACHE.canceled = CACHE.canceled.filter(o=> String(o.id)!==sid);
+  // Centralized removal via helper to avoid stray filter lines
+  removeFromCaches(sid);
       const idx = CACHE.pending.findIndex(o=> String(o.id)===sid);
       if(idx>=0) CACHE.pending[idx] = ord; else CACHE.pending.push(ord);
       applyActiveFilter();
       // Refresco de seguridad: reconsultar listas para evitar estados intermedios
       // (p. ej. si llegan eventos fuera de orden)
-      renderPedidos().catch(()=>{});
+      renderPedidos().then(()=>{ try { ensureCancelTabAlarm(); } catch{} }).catch(()=>{});
     }catch{}
   });
-  es.addEventListener('order_canceled', e=>{ try{ const d=JSON.parse(e.data||'{}'); if(d?.order){ moveToCanceled(d.order); } }catch{} });
+  es.addEventListener('order_canceled', e=>{ try{ const d=JSON.parse(e.data||'{}'); if(d?.order){ moveToCanceled(d.order); ensureCancelTabAlarm(); ensureMarkSeenButton(); } }catch{} });
   es.addEventListener('order_confirmed', e=>{ try{ const d=JSON.parse(e.data||'{}'); if(d?.order){ moveToConfirmed(d.order); toast('Pedido confirmado ✅','ok'); } }catch{} });
   es.addEventListener('error', ()=>{ try{ es.close(); }catch{}; setTimeout(startEvents, 2500); });
 }
 window.addEventListener('beforeunload', ()=>{ if(es) try{ es.close(); }catch{} });
 
 // Helpers SSE mutations
-function removeCard(id){ const el=document.querySelector(`[data-card-id="${CSS.escape(String(id))}"]`); if(el){ el.remove(); updateEmptyStates(); } }
+function removeCard(id){ const el=document.querySelector(`[data-card-id="${safeEscape(String(id))}"]`); if(el){ el.remove(); updateEmptyStates(); } }
 function addPendingCard(order){ const list=$id('list-pendientes'); if(!list) return; list.appendChild(renderCard(order)); updateEmptyStates(); }
 function addCanceledCard(order){
   const list=$id('list-cancelados'); if(!list) return;
@@ -471,7 +594,7 @@ function addCanceledCard(order){
 }
 
 function markCardConfirmed(id){
-  const el = document.querySelector(`[data-card-id="${CSS.escape(String(id))}"]`);
+  const el = document.querySelector(`[data-card-id="${safeEscape(String(id))}"]`);
   if(!el) return;
   const statusEl = el.querySelector('.row.top .status');
   if(statusEl){ statusEl.textContent = 'Confirmado'; statusEl.classList.remove('pending','canceled'); statusEl.classList.add('confirmed'); }
@@ -519,20 +642,19 @@ function ensureCancelTabAlarm(){
   if(countFreshCanceled()>0) tab.classList.add('highlight-cancelados');
 }
 function ensureMarkSeenButton(){
-  const panel=document.getElementById('panel-cancelados'); if(!panel) return;
+  const panel = document.getElementById('panel-cancelados'); if(!panel) return;
   let bar = panel.querySelector('.mark-seen-bar');
   if(!bar){
-    bar=document.createElement('div');
-    bar.className='mark-seen-bar';
-    const btn=document.createElement('button');
-    btn.className='btn-mark-seen';
-    btn.type='button';
-    btn.textContent='Marcar todos vistos';
+    bar = document.createElement('div');
+    bar.className = 'mark-seen-bar';
+    const btn = document.createElement('button');
+    btn.className = 'btn-mark-seen';
+    btn.textContent = 'Marcar todos vistos';
     btn.addEventListener('click', ()=> markAllCanceledSeen());
     bar.appendChild(btn);
     panel.insertBefore(bar, panel.firstChild);
   }
-  bar.hidden = countFreshCanceled()===0;
+  bar.hidden = countFreshCanceled() === 0;
 }
 function markAllCanceledSeen(){
   const now=Date.now(); saveLastVisitCanceled(now); lastVisitCanceled=now;
@@ -546,29 +668,68 @@ function markAllCanceledSeen(){
   const cancelTab = document.querySelector('.tabbar .tab[data-target="cancelados"]');
   if(cancelTab) cancelTab.classList.remove('highlight-cancelados');
 }
-
-// Eliminado: ya no se descartan los fresh cancelados al click individual.
-
-function removeFromCaches(id){
-  const sid = String(id);
-  CACHE.pending = CACHE.pending.filter(o=> String(o.id)!==sid);
-  CACHE.confirmed = CACHE.confirmed.filter(o=> String(o.id)!==sid);
-  CACHE.canceled = CACHE.canceled.filter(o=> String(o.id)!==sid);
-}
+// Eliminada línea suelta de filtrado redundante
 
 async function deleteOrder(id, from){
-  try{
-    if(!confirm('¿Eliminar definitivamente este pedido?')) return;
-    // Si borramos un cancelado fresco, marcarlo como visto antes de eliminar
+  try {
+    if(!confirm('¿Eliminar definitivamente este pedido?')) return false;
     if(from === 'canceled'){
       try { seenCanceledIds.add(String(id)); saveSeenCanceled(seenCanceledIds); } catch{}
     }
-    await apiFetch(`/api/pedidos/${encodeURIComponent(id)}`, { method:'DELETE' });
-    removeFromCaches(id);
-    removeCard(id);
-    updateEmptyStates();
+    const res = await fetch(`/api/pedidos/${encodeURIComponent(id)}?tenant=${encodeURIComponent(TENANT)}`, { method:'DELETE', credentials:'same-origin', headers:{ 'X-Tenant-Id': TENANT } });
+    if(!res.ok){
+      let body='';
+      try { body = (await res.text()) || res.statusText || 'Error'; } catch { body = res.statusText || 'Error'; }
+      throw new Error(body);
+    }
+  removeFromCaches(id);
+  removeCard(id);
+  updateEmptyStates();
+  await renderPedidos();
+  try { ensureCancelTabAlarm(); } catch{}
     toast('Pedido eliminado 🗑️','ok');
-  } catch{ toast('No se pudo eliminar','err'); }
+    try { console.debug('SUCCESS delete', id); } catch{}
+    return true;
+  } catch(err){
+    toast(`No se pudo eliminar: ${err && err.message ? err.message : 'Error'}`,'err');
+    return false;
+  }
+}
+
+// Cancel order (pending or confirmed) -> cancel OR remove (if pending)
+async function cancelOrder(id){
+  try {
+    const res = await fetch(`/api/pedidos/${encodeURIComponent(id)}/cancel?tenant=${encodeURIComponent(TENANT)}`, { method:'POST', credentials:'same-origin', headers:{ 'X-Tenant-Id': TENANT } });
+    if(!res.ok){
+      let msg='';
+      try { msg = (await res.text()) || res.statusText || 'Error'; } catch { msg = res.statusText || 'Error'; }
+      throw new Error(msg);
+    }
+    const data = await res.json().catch(()=>({}));
+    if(data.removed){
+  removeFromCaches(id);
+  removeCard(id);
+  updateEmptyStates();
+  await renderPedidos();
+  try { ensureCancelTabAlarm(); } catch{}
+      toast('Pedido eliminado','ok');
+    } else if(data.order){
+  removeFromCaches(id);
+  removeCard(id);
+  CACHE.canceled.push(data.order);
+  addCanceledCard(data.order);
+  updateEmptyStates();
+  try { ensureCancelTabAlarm(); } catch{}
+    } else {
+  await renderPedidos();
+  try { ensureCancelTabAlarm(); } catch{}
+    }
+    try { console.debug('SUCCESS cancel', id); } catch{}
+    return true;
+  } catch(err){
+    toast(`No se pudo cancelar: ${err && err.message ? err.message : 'Error'}`,'err');
+    return false;
+  }
 }
 
 // =========================
@@ -633,7 +794,41 @@ function startClock(){ const el=$id('clock'); if(!el) return; const upd=()=>{ co
 // =========================
 // App bootstrap
 // =========================
-const App=(function(){ let started=false; return { init: async function(){ if(started) return; started=true; wireTabs(); wireButtons(); initSocketOnce(); if(!es) startEvents(); await loadStatus(); startStatusPolling(); await loadTables(); startClock(); updateEmptyStates(); } }; })();
+const App=(function(){ let started=false; return { init: async function(){ if(started) return; started=true; wireTabs(); wireButtons(); initSocketOnce(); if(!es) startEvents(); await loadStatus(); startStatusPolling(); await loadTables(); startClock(); updateEmptyStates(); try{ updateProductionButtonVisibility(); }catch{} } }; })();
+
+// =========================
+// Producción: abrir/cerrar modal + fecha por defecto
+// =========================
+try{
+  const modal=$id('modalProduction');
+  const btnOpen=$id('btnProduction');
+  const btnClose=$id('prodClose');
+  const btnCalc=$id('prodCalc');
+  const inpDate=$id('prodDate');
+  function openProd(){
+    if(!modal) return;
+    modal.classList.remove('hidden');
+    if(inpDate){
+      const t=new Date();
+      const y=t.getFullYear();
+      const m=String(t.getMonth()+1).padStart(2,'0');
+      const d=String(t.getDate()).padStart(2,'0');
+      inpDate.value=`${y}-${m}-${d}`;
+      try{ inpDate.focus(); }catch{}
+    }
+  }
+  function closeProd(){ if(!modal) return; modal.classList.add('hidden'); const r=$id('prodResult'); if(r) r.innerHTML=''; }
+  btnOpen?.addEventListener('click', openProd);
+  btnClose?.addEventListener('click', closeProd);
+  modal?.addEventListener('click', (e)=>{ if(e.target===modal) closeProd(); });
+  btnCalc?.addEventListener('click', async ()=>{
+    const ymd = String(inpDate?.value||'').trim();
+    if(!ymd) return;
+    const orders = await getConfirmedByDate(ymd);
+    const sum = summarizeProduction(orders);
+    renderProduction(sum);
+  });
+}catch{}
 
 window.addEventListener('DOMContentLoaded', ()=>{ App.init(); });
 

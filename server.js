@@ -132,6 +132,7 @@ app.get('/api/pedidos', async (req,res)=>{
         return {
           id: p.id,
           createdAt: p.createdAt,
+          canceledAt: p.canceledAt || null,
           phone: (p.customer && p.customer.phone) || f.telefono || '',
           nombre: '',
           fecha: f.fecha || p.fecha || '',
@@ -142,6 +143,7 @@ app.get('/api/pedidos', async (req,res)=>{
           status: p.status || 'pending',
           modified: Boolean(p.modified),
           replaces: p.replaces || null,
+          replacedBy: p.replacedBy || null,
           items: items,
           total: total
         };
@@ -184,17 +186,30 @@ app.post('/api/pedidos/:id/cancel', async (req,res)=>{
     const tenant = String(req.query.tenant||'').trim();
     if(!tenant) return res.status(400).json({ error:'tenant requerido'});
     const id = req.params.id;
-    // Enforce: only confirmed orders can be canceled by UI
     const all = await orderStore.readAllFast(tenant);
     const target = all.find(o=> String(o.id)===String(id));
     if(!target) return res.status(404).json({ ok:false, error:'no encontrado' });
-    if(String(target.status||'').toLowerCase()!=='confirmed'){
-      return res.status(400).json({ ok:false, error:'solo_confirmados', message:'Solo se pueden cancelar pedidos confirmados' });
+    const status = String(target.status||'').toLowerCase();
+    if(status==='canceled') return res.status(400).json({ ok:false, error:'ya_cancelado' });
+    if(!['pending','confirmed'].includes(status)) return res.status(400).json({ ok:false, error:'estado_no_cancelable' });
+    // Mensaje admin personalizado (solo si pending o confirmed y se solicita cancelar)
+    const adminCancelMsg = 'Hola 😊, sentimos decirte que el día elegido ya está completo 📅❌.\nEscribe menú 📲 para ver otras fechas y con todo el cariño haremos tu Cheesecake 🧀🍰.';
+    const phone = (target?.customer?.phone) || (target?.fields?.telefono) || '';
+    const wa = (()=>{ try { return require('./services/whatsappService'); } catch { return null; } })();
+    if(status==='pending'){
+      // Borrado duro: eliminar de pedidos.json
+      try { await orderStore.remove(tenant, id); } catch(e){ return res.status(500).json({ ok:false, error:'remove_failed' }); }
+      // Intentar enviar mensaje
+      if(phone && wa){ try { await wa.sendMessage(tenant, phone, adminCancelMsg); } catch{} }
+      return res.json({ ok:true, removed:true });
+    } else {
+      // confirmed -> marcar cancelado y notificar
+      let order = null;
+      try { order = await orderStore.cancel(tenant, id); } catch(e){ order = null; }
+      if(!order) return res.status(500).json({ ok:false, error:'cancel_failed' });
+      if(phone && wa){ try { await wa.sendMessage(tenant, phone, adminCancelMsg); } catch{} }
+      return res.json({ ok:true, order });
     }
-    let order = null;
-    try { order = await orderStore.cancel(tenant, id); } catch(e){ order = null; }
-    if(!order) return res.status(500).json({ ok:false, error:'cancel_failed' });
-    return res.json({ ok:true, order });
   } catch(e){ console.error('POST /api/pedidos/:id/cancel error', e); return res.status(500).json({ ok:false, error:e.message }); }
 });
 
@@ -363,6 +378,7 @@ async function initWA(){
       clearTimeout(readyTimeout);
       console.log('[bot] ready');
       waInitAttempts = 0; // reset attempts after success
+      try { publishReady('samuel'); } catch {}
       try { waClient._externalHandlersManaged = true; } catch {}
       attachBotHandlers(waClient, manejar);
     });

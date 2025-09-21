@@ -21,13 +21,13 @@
   "prices": { "grande": 35.0, "cajitas": 12.0 },
   "messages": {
     "welcome": "¡Hola! 👋 Soy el asistente de *SayCheese By Nestor*.\n\n👉Puedes escribir *menu* en cualquier momento para volver al inicio.\n👉 *atras* Para retroceder o *cancelar* Para cancelar algún proceso ✅.",
-    "menu": "Menú principal 📋\n👉 *1)* Hacer pedido 🛒\n👉 *2)* Cancelar pedido ❌\n👉 *3)* Modificar pedido ✏️\n👉 *4)* Dirección 📍\n\n(Responde con el número)",
+  "menu": "Menú principal 📋\n👉 *1)* Hacer pedido 🛒\n👉 *2)* Cancelar pedido ❌\n👉 *3)* Modificar pedido ✏️\n👉 *4)* Dirección 📍\n👉 *5)* Información ℹ️\n\n(Responde con el número)",
     "bad_option": "Mmm… no te entendí 🤖. Escribe *pedido* para empezar 🎂 o *menu* para ver opciones 📋.",
 
     "ask_telefono": "Indica tu *teléfono* (9 dígitos) 📞:",
     "ask_tamano": "Elige *tamaño* 📏:\n1) *Grande* (10–12 raciones, 1.5 Kg) – *35€*\n2) *Cajitas* (400 g) – *12€*\nResponde *1/2* o escribe *grande/cajitas*.",
     "flavor_list": "Sabores 🤤:\n• Clásica 🍰\n• Lotus 🍪\n• Pistacho 🟢\n• Oreo 🔵\n• Nocilla 🍫\n• Gofio 🌾\n• Mango-Maracuyá 🥭\n• Hippo 🦛\n• Caramelo Salado 🦅\nUsa solo los de la lista mostrada",
-    "ask_sabores": "👉 Dime qué *sabores* quieres 🍰.\n\n✅ Puedes elegir uno o varios.\n✅ Solo escribe cuántos quieres de cada sabor.\n\n📌 Ejemplos:\n- 1 clásica 2 oreo 3 mango (sin comas)🥭\n- 1 lotus 🍪\n- 2 Oreo 3 Pistacho 1 Lotus \n\nSabores disponibles:\n• Clásica 🍰\n• Lotus 🍪\n• Pistacho 🟢\n• Oreo 🔵\n• Nocilla 🍫\n• Gofio 🌾\n• Mango-Maracuyá 🥭\n• Hippo 🦛\n• Caramelo Salado 🦅\n\n✍️ Escribe la cantidad seguida del nombre del sabor.",
+    "ask_sabores": "👉 Dime qué *sabores* quieres 🍰.\n\n✅ Puedes elegir uno o varios.\n✅ Solo escribe cuántos quieres de cada sabor.\n\n📌 Ejemplos:\n- 1 clásica 2 oreo 3 mango (sin comas)🥭\n- 1 lotus , 2 oreo , 4 mango(con comas) \n- 2 Oreo 3 Pistacho 1 Lotus \n\nSabores disponibles:\n• Clásica 🍰\n• Lotus 🍪\n• Pistacho 🟢\n• Oreo 🔵\n• Nocilla 🍫\n• Gofio 🌾\n• Mango-Maracuyá 🥭\n• Hippo 🦛\n• Caramelo Salado 🦅\n\n✍️ Escribe la cantidad seguida del nombre del sabor.",
     "porciones_info": "Las porciones (4,5€) son sin reserva de Viernes a Domingo.",
     "horario_info": "Horario semanal:\nJueves 11:00 / 13:00\nViernes 18:00/20:00\nSábado 11:00/13:30\nDomingo 11:00/13:30",
 
@@ -36,7 +36,7 @@
     "ask_fecha": "¿*Día de recogida*? 📅 (DD/MM). *Mínimo 3 días* de antelación ⏳.",
     "ask_observacion": "¿Alguna *observación*? 📝 (opcional; puedes escribir \"no\")",
 
-    "summary": "🧾 Pedido para {telefono}.\n• Tamaño: {tamano}\n• Sabores: {sabores}\n• Cantidad: {cantidad}\n• Recogida: {fecha}\n• Total aprox: *{total}€*\n\n¿Confirmas? (si/no) ✅❌",
+    "summary": "🧾 Pedido para {telefono}.\n• Tamaño: {tamano}\n• Sabores: {sabores}\n• Cantidad: {cantidad}\n• Recogida: {fecha}\n• Total : *{total}€*\n\n¿Confirmas? (si/no) ✅❌",
     "confirm_yesno": "👉 Responde *si* o *no*, por favor.",
     "confirmed": "¡Listo! ✅ Hemos registrado tu pedido. Te enviaremos la confirmacion 🙌.",
     "canceled": "Entendido. No se ha hecho ningun pedido ❌. ¡Gracias ! Escribe menu para volver al inicio . ",
@@ -58,7 +58,7 @@
     "delete_found_confirm": "He encontrado {count} pedido(s) *pendiente(s)* para el teléfono *{telefono}* ☎️. ¿Quieres borrarlo(s)? (si/no)",
     "delete_canceled": "Operación cancelada ✅ Escribe menu para ver opciones.",
     "show_address": "Nuestra dirección es:\n{{address}} 📍\n\n🗺️ Puedes buscarnos en Google Maps.",
-    "confirm": "🧾 Pedido para {telefono}. Tamaño: {tamano}. Cantidad: {cantidad}. Sabores: {sabores}. Recogida: {fecha}. Total aprox: {total}€.\n👉 ¿Confirmas? (sí/no)"
+    "confirm": "🧾 Pedido para {telefono}. Tamaño: {tamano}. Cantidad: {cantidad}. Sabores: {sabores}. Recogida: {fecha}. Total : {total}€.\n👉 ¿Confirmas? (sí/no)"
   },
   "porciones_keywords": ["porciones", "porcion", "porción"],
   "horario_keywords": ["horario", "horarios"],

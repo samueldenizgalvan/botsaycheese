@@ -406,11 +406,22 @@ body.mobile-app{
 	box-shadow:0 0 6px 2px rgba(255,60,80,.6);
 	animation: newDot 1.4s ease-in-out infinite;
 }
-.order-card.canceled.is-fresh .status.canceled::after{
+.order-card.canceled.is-fresh .status.canceled::after,
+.order-card.canceled.is-fresh .status.modified-cancel::after{
 	content:"NUEVO";
 	margin-left:6px; font-size:.55rem; letter-spacing:.5px; font-weight:700;
 	background:linear-gradient(90deg,#ff2f45,#ff7b8a); padding:2px 6px; border-radius:6px; display:inline-block; line-height:1; box-shadow:0 2px 4px -1px rgba(0,0,0,.35);
 }
+/* Badge adicional para cancelado por modificación */
+.order-card.canceled .status.modified-cancel::before{
+	content:"MOD";
+	display:inline-block;
+	margin-right:6px;
+	font-size:.55rem; letter-spacing:.5px; font-weight:700;
+	background:linear-gradient(90deg,#7834ff,#b18bff); padding:2px 6px; border-radius:6px; line-height:1; box-shadow:0 2px 4px -1px rgba(0,0,0,.35);
+}
+.order-card.canceled .row.replaced strong{ color:#cbd5e1; }
+.order-card.canceled .row.replaced span{ color:#f1f5f9; font-weight:600; }
 @keyframes newDot {
 	0%,100% { transform:scale(.9); opacity:.9; }
 	50% { transform:scale(1.25); opacity:1; }
@@ -506,6 +517,7 @@ body.mobile-app { min-height:100dvh; display:flex; flex-direction:column; }
 .order-card .status.canceled { background:#ff5c6c; }
 /* Ensure confirmed pill is visible (non-white background) */
 .order-card .status.confirmed { background:#10b981; }
+.order-card .status.modified-pending { background:#2563eb; color:#ffffff; }
 .order-card .actions { display:flex; gap:8px; margin-top:8px; }
 /* Canceled card enhanced styling */
 /* Make canceled cards use the same visual style as pending */
@@ -544,3 +556,30 @@ html, body, #app, .main-content, .container, .app-root{
 	min-height:0;
 	-webkit-overflow-scrolling:touch;
 }
+
+/* =============================
+   Producción (botón + modal)
+   ============================= */
+.icon-btn{ display:inline-flex; align-items:center; justify-content:center; width:40px; height:40px; border:1px solid rgba(0,0,0,.08); background:#ffffff; color:#1e293b; border-radius:.7rem; cursor:pointer; box-shadow:0 2px 4px rgba(0,0,0,.12); transition:background .2s, box-shadow .2s, transform .15s; }
+.icon-btn svg{ fill:currentColor; }
+.icon-btn:hover{ background:#f1f5f9; box-shadow:0 3px 8px -2px rgba(0,0,0,.18); }
+.icon-btn:active{ transform:translateY(1px); }
+
+/* Modal específico de producción (no interfiere con modal QR existente) */
+#modalProduction.modal{ position:fixed; inset:0; background:rgba(0,0,0,.5); display:flex; align-items:center; justify-content:center; z-index:200; padding:12px; }
+#modalProduction.modal.hidden{ display:none !important; }
+#modalProduction .modal-card{ width:min(560px, 95vw); background:#0f1720; color:#e5eef7; border:1px solid rgba(255,255,255,.06); border-radius:12px; padding:16px; box-shadow:0 10px 30px rgba(0,0,0,.4); display:flex; flex-direction:column; gap:10px; }
+#modalProduction .modal-card h3{ margin:0 0 4px; font-size:1.05rem; font-weight:600; }
+#modalProduction .modal-card label{ font-size:.75rem; font-weight:600; letter-spacing:.5px; opacity:.75; text-transform:uppercase; }
+#modalProduction .modal-card input[type=date]{ background:#111b28; border:1px solid rgba(255,255,255,.12); color:#e5eef7; padding:8px 10px; border-radius:8px; font:inherit; }
+#modalProduction .modal-card input[type=date]:focus{ outline:2px solid #2563eb; outline-offset:2px; }
+#modalProduction .modal-card .actions{ display:flex; gap:8px; justify-content:flex-end; margin-top:4px; }
+#modalProduction .modal-card .actions .btn{ flex:0 0 auto; }
+/* Resultado */
+#prodResult.prod-result{ max-height:55vh; overflow:auto; font-size:.8rem; }
+#prodResult table{ width:100%; border-collapse:collapse; margin-top:12px; }
+#prodResult th,#prodResult td{ border-bottom:1px solid rgba(255,255,255,.06); padding:6px 8px; text-align:left; }
+#prodResult th{ font-size:.65rem; text-transform:uppercase; letter-spacing:.6px; opacity:.75; }
+#prodResult tr:last-child td{ border-bottom:none; }
+#prodResult .total-row td{ font-weight:600; }
+

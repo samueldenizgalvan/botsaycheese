@@ -11,7 +11,7 @@
     <div class="brand">
       <span class="logo-dot"></span>
       <span id="brandText">SayCheese By Nestor</span>
-      <span class="app-version" style="display:block;font-size:10px;line-height:1;color:#94a3b8;margin-top:2px;">V1.2</span>
+  <span class="app-version" style="display:block;font-size:10px;line-height:1;color:#94a3b8;margin-top:2px;">V1.3</span>
     </div>
     <div class="header-right">
       <span id="clock" class="pill"></span>
@@ -31,6 +31,11 @@
         <input id="phoneFilter" class="search-input" type="search" inputmode="numeric" pattern="[0-9]*" placeholder="Filtrar por teléfono…" aria-label="Filtrar por teléfono" />
         <button id="clearFilter" class="clear-btn" title="Limpiar">✕</button>
       </div>
+      <button id="btnProduction" class="icon-btn" title="Producción" aria-label="Producción">
+        <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true">
+          <path d="M12 2c.8 0 1.5.7 1.5 1.5S12.8 5 12 5s-1.5-.7-1.5-1.5S11.2 2 12 2zm-6 8h12l2 3H4l2-3zm-1 5h14v4a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2v-4z"/>
+        </svg>
+      </button>
     </section>
 
     <section class="tabs-container">
@@ -79,6 +84,19 @@
 
   <!-- Toast -->
   <div id="toast" class="toast" role="status" aria-live="polite"></div>
+
+  <div id="modalProduction" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="prodTitle">
+    <div class="modal-card">
+      <h3 id="prodTitle">Calcular producción</h3>
+      <label for="prodDate">Fecha</label>
+      <input id="prodDate" type="date" />
+      <div class="actions">
+        <button id="prodCalc" class="btn btn-primary">Calcular</button>
+        <button id="prodClose" class="btn">Cerrar</button>
+      </div>
+      <div id="prodResult" class="prod-result"></div>
+    </div>
+  </div>
 
   <script src="/socket.io/socket.io.js" defer></script>
   <script src="/public/index.js" defer></script>

@@ -4,3 +4,8 @@ sessions/
 logs/
 data/*/state/
 .wwebjs_auth/
+# Ignorar pedidos
+data/samuel/pedidos.json
+# Ignorar cachés y backups
+.wwebjs_cache/
+data/samuel/backup-*
