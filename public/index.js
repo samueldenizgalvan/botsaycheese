@@ -404,9 +404,21 @@ function summarizeProduction(orders){
       const dist = Array.isArray(it.sabores_distribucion) ? it.sabores_distribucion : null;
       if(dist && dist.length){
         for(const d of dist){ add(tipo, String(d.flavor), Number(d.count)||0); }
-      }else if(Array.isArray(it.sabores) && (it.cantidad!=null)){
-        add(tipo, 'Variado', Number(it.cantidad)||0);
-      }else{
+      } else if(Array.isArray(it.sabores) && (it.cantidad!=null)) {
+        const sabores = Array.isArray(it.sabores) ? it.sabores.filter(Boolean).map(String) : [];
+        const n = Number(it.cantidad)||0;
+        if(n <= 0) continue;
+        if(sabores.length === 0){
+          // Sin sabores listados -> usar 'Variado'
+            add(tipo, 'Variado', n);
+        } else if(sabores.length === 1){
+          add(tipo, sabores[0], n);
+        } else if(sabores.length === n){
+          for(const s of sabores){ add(tipo, s, 1); }
+        } else {
+          for(let i=0;i<n;i++){ add(tipo, sabores[i % sabores.length], 1); }
+        }
+      } else {
         add(tipo, '—', Number(it.cantidad||1));
       }
     }
