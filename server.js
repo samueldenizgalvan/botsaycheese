@@ -9,6 +9,8 @@ const http = require('http');
 const path = require('path');
 const session = require('express-session');
 const cookieParser = require('cookie-parser');
+// Cleanup service
+const { startCleanupScheduler } = require('./services/cleanupService');
 const authRequired = require('./middleware/authRequired');
 const app = express();
 
@@ -89,6 +91,7 @@ app.use('/tenant', require('./routes/tenant'));
 app.use('/records', require('./routes/records'));
 app.use('/logs', require('./routes/logs'));
 app.use('/messages', require('./routes/messages'));
+app.use('/historico', authRequired, require('./routes/historico'));
 // Proteger APIs
 app.use('/api', authRequired);
 // Bot router con contrato estable
@@ -422,6 +425,9 @@ function startDailyReminderJob(){
 async function bootstrap(){
   await initHttp();
   startDailyReminderJob();
+  // Iniciar limpieza periódica de pedidos caducados
+  const cleanupInterval = Number(process.env.CLEANUP_INTERVAL_MS || 24*60*60*1000);
+  try { startCleanupScheduler(cleanupInterval); } catch(e){ console.error('[cleanup] no se pudo iniciar', e); }
   if (!DISABLE_WA) {
     await initWA();
   } else {

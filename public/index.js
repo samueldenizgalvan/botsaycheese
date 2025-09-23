@@ -179,6 +179,9 @@ function wireTabs(){
       const target = btn.getAttribute('data-target');
       switchTab(target);
       try { updateProductionButtonVisibility(); } catch{}
+      if(target==='historico'){
+        try { ensureHistoricalLoaded(); } catch(e){ console.error(e); }
+      }
     });
   });
 }
@@ -843,6 +846,62 @@ try{
 }catch{}
 
 window.addEventListener('DOMContentLoaded', ()=>{ App.init(); });
+
+// =========================
+// Histórico mensual
+// =========================
+let HIST_CACHE = { month:null, data:null };
+async function fetchHistorico(month){
+  const res = await fetch(`/historico?month=${encodeURIComponent(month)}&tenant=${encodeURIComponent(TENANT)}`, { credentials:'same-origin' });
+  if(!res.ok) throw new Error('historico_failed');
+  return await res.json();
+}
+function currentMonthStr(){ const d=new Date(); return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0'); }
+function ensureHistoricalMonthInput(){
+  const inp = $id('histMonth'); if(!inp) return;
+  if(!inp.value) inp.value = currentMonthStr();
+}
+function renderBarRows(container, map){
+  if(!container) return; container.innerHTML='';
+  const entries = Object.entries(map||{}).sort((a,b)=> b[1]-a[1]);
+  let max = 0; for(const [,v] of entries) if(v>max) max=v;
+  if(entries.length===0){ container.innerHTML='<div style="opacity:.6;font-size:.7rem;">Sin datos</div>'; return; }
+  for(const [name,val] of entries){
+    const row=document.createElement('div'); row.className='bar-row';
+    row.innerHTML=`<div class="flavor" title="${safe(name)}">${safe(name)}</div><div class="bar-wrap"><div class="bar" style="width:${max? ((val/max)*100).toFixed(1):0}%;"></div></div><div class="count">${val}</div>`;
+    container.appendChild(row);
+  }
+}
+function renderHistorico(data){
+  if(!data) return;
+  const sumEl = $id('histSummary');
+  if(sumEl){
+    sumEl.innerHTML = `
+      <div class="metric"><span class="label">Pedidos</span><span class="value">${data.totalPedidos}</span></div>
+      <div class="metric"><span class="label">Importe €</span><span class="value">${Number(data.totalImporte||0).toFixed(2)}</span></div>
+      <div class="metric"><span class="label">Sabores</span><span class="value">${Object.keys(data.sabores||{}).length}</span></div>
+      <div class="metric"><span class="label">Tamaños</span><span class="value">${Object.keys(data.tamanos||{}).length}</span></div>
+    `;
+  }
+  renderBarRows($id('histSabores'), data.sabores);
+  renderBarRows($id('histTamanos'), data.tamanos);
+}
+async function loadHistorico(force=false){
+  ensureHistoricalMonthInput();
+  const month = $id('histMonth')?.value || currentMonthStr();
+  if(!force && HIST_CACHE.month===month && HIST_CACHE.data){ renderHistorico(HIST_CACHE.data); return; }
+  try {
+    const data = await fetchHistorico(month);
+    HIST_CACHE = { month, data };
+    renderHistorico(data);
+  } catch(e){ console.error('[historico] fetch error', e); const sumEl=$id('histSummary'); if(sumEl) sumEl.innerHTML='<div style="color:#b91c1c;font-size:.7rem;">Error cargando histórico</div>'; }
+}
+function ensureHistoricalLoaded(){ loadHistorico(false); }
+// Wiring botones histórico
+document.addEventListener('DOMContentLoaded', ()=>{
+  const btn = $id('histReload'); if(btn){ btn.addEventListener('click', ()=> loadHistorico(true)); }
+  const inp=$id('histMonth'); if(inp){ inp.addEventListener('change', ()=> loadHistorico(true)); }
+});
 
 // Expose debug helpers
 window.loadStatus = loadStatus;

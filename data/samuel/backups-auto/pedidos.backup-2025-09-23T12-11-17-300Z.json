@@ -1,0 +1,3392 @@
+[
+  {
+    "id": "101",
+    "status": "confirmed",
+    "createdAt": 1754046000000,
+    "customer": {
+      "phone": "123200000"
+    },
+    "fields": {
+      "items": [
+        {
+          "tamano": "grande",
+          "label": "Grande (35€)",
+          "type": "entera",
+          "cantidad": 1,
+          "sabores": [
+            "Clásica"
+          ],
+          "sabores_distribucion": [
+            {
+              "count": 1,
+              "flavor": "Clásica"
+            }
+          ],
+          "fecha": "01-08",
+          "observacion": "",
+          "precioUnit": 35,
+          "total": 35
+        }
+      ],
+      "telefono": "123200000",
+      "tamano": "grande",
+      "sabores_distribucion": [
+        {
+          "count": 1,
+          "flavor": "Clásica"
+        }
+      ],
+      "sabores": [
+        "Clásica"
+      ],
+      "cantidad": 1,
+      "fecha": "01-08",
+      "fecha_dow": "Viernes",
+      "observacion": ""
+    },
+    "total": 35,
+    "confirmedAt": 1754051940000
+  },
+  {
+    "id": "102",
+    "status": "confirmed",
+    "createdAt": 1754132400000,
+    "customer": {
+      "phone": "123200001"
+    },
+    "fields": {
+      "items": [
+        {
+          "tamano": "grande",
+          "label": "Grande (35€)",
+          "type": "entera",
+          "cantidad": 1,
+          "sabores": [
+            "Lotus"
+          ],
+          "sabores_distribucion": [
+            {
+              "count": 1,
+              "flavor": "Lotus"
+            }
+          ],
+          "fecha": "02-08",
+          "observacion": "",
+          "precioUnit": 35,
+          "total": 35
+        }
+      ],
+      "telefono": "123200001",
+      "tamano": "grande",
+      "sabores_distribucion": [
+        {
+          "count": 1,
+          "flavor": "Lotus"
+        }
+      ],
+      "sabores": [
+        "Lotus"
+      ],
+      "cantidad": 1,
+      "fecha": "02-08",
+      "fecha_dow": "Sábado",
+      "observacion": ""
+    },
+    "total": 35,
+    "confirmedAt": 1754137200000
+  },
+  {
+    "id": "103",
+    "status": "confirmed",
+    "createdAt": 1754226900000,
+    "customer": {
+      "phone": "123200002"
+    },
+    "fields": {
+      "items": [
+        {
+          "tamano": "cajitas",
+          "label": "Cajitas (12€)",
+          "type": "cajitas",
+          "cantidad": 5,
+          "sabores": [
+            "Pistacho"
+          ],
+          "sabores_distribucion": [
+            {
+              "count": 5,
+              "flavor": "Pistacho"
+            }
+          ],
+          "fecha": "03-08",
+          "observacion": "",
+          "precioUnit": 12,
+          "total": 60
+        }
+      ],
+      "telefono": "123200002",
+      "tamano": "cajitas",
+      "sabores_distribucion": [
+        {
+          "count": 5,
+          "flavor": "Pistacho"
+        }
+      ],
+      "sabores": [
+        "Pistacho"
+      ],
+      "cantidad": 5,
+      "fecha": "03-08",
+      "fecha_dow": "Domingo",
+      "observacion": ""
+    },
+    "total": 60,
+    "confirmedAt": 1754231040000
+  },
+  {
+    "id": "104",
+    "status": "confirmed",
+    "createdAt": 1754475300000,
+    "customer": {
+      "phone": "123200003"
+    },
+    "fields": {
+      "items": [
+        {
+          "tamano": "grande",
+          "label": "Grande (35€)",
+          "type": "entera",
+          "cantidad": 2,
+          "sabores": [
+            "Oreo"
+          ],
+          "sabores_distribucion": [
+            {
+              "count": 2,
+              "flavor": "Oreo"
+            }
+          ],
+          "fecha": "06-08",
+          "observacion": "",
+          "precioUnit": 35,
+          "total": 70
+        }
+      ],
+      "telefono": "123200003",
+      "tamano": "grande",
+      "sabores_distribucion": [
+        {
+          "count": 2,
+          "flavor": "Oreo"
+        }
+      ],
+      "sabores": [
+        "Oreo"
+      ],
+      "cantidad": 2,
+      "fecha": "06-08",
+      "fecha_dow": "Miércoles",
+      "observacion": ""
+    },
+    "total": 70,
+    "confirmedAt": 1754480940000
+  },
+  {
+    "id": "105",
+    "status": "confirmed",
+    "createdAt": 1754578800000,
+    "customer": {
+      "phone": "123200004"
+    },
+    "fields": {
+      "items": [
+        {
+          "tamano": "grande",
+          "label": "Grande (35€)",
+          "type": "entera",
+          "cantidad": 2,
+          "sabores": [
+            "Nocilla",
+            "Gofio"
+          ],
+          "sabores_distribucion": [
+            {
+              "count": 1,
+              "flavor": "Nocilla"
+            },
+            {
+              "count": 1,
+              "flavor": "Gofio"
+            }
+          ],
+          "fecha": "07-08",
+          "observacion": "",
+          "precioUnit": 35,
+          "total": 70
+        }
+      ],
+      "telefono": "123200004",
+      "tamano": "grande",
+      "sabores_distribucion": [
+        {
+          "count": 1,
+          "flavor": "Nocilla"
+        },
+        {
+          "count": 1,
+          "flavor": "Gofio"
+        }
+      ],
+      "sabores": [
+        "Nocilla",
+        "Gofio"
+      ],
+      "cantidad": 2,
+      "fecha": "07-08",
+      "fecha_dow": "Jueves",
+      "observacion": ""
+    },
+    "total": 70,
+    "confirmedAt": 1754579760000
+  },
+  {
+    "id": "106",
+    "status": "confirmed",
+    "createdAt": 1754681400000,
+    "customer": {
+      "phone": "123200005"
+    },
+    "fields": {
+      "items": [
+        {
+          "tamano": "grande",
+          "label": "Grande (35€)",
+          "type": "entera",
+          "cantidad": 3,
+          "sabores": [
+            "Mango-Maracuyá",
+            "Hippo",
+            "Caramelo Salado"
+          ],
+          "sabores_distribucion": [
+            {
+              "count": 1,
+              "flavor": "Mango-Maracuyá"
+            },
+            {
+              "count": 1,
+              "flavor": "Hippo"
+            },
+            {
+              "count": 1,
+              "flavor": "Caramelo Salado"
+            }
+          ],
+          "fecha": "08-08",
+          "observacion": "",
+          "precioUnit": 35,
+          "total": 105
+        }
+      ],
+      "telefono": "123200005",
+      "tamano": "grande",
+      "sabores_distribucion": [
+        {
+          "count": 1,
+          "flavor": "Mango-Maracuyá"
+        },
+        {
+          "count": 1,
+          "flavor": "Hippo"
+        },
+        {
+          "count": 1,
+          "flavor": "Caramelo Salado"
+        }
+      ],
+      "sabores": [
+        "Mango-Maracuyá",
+        "Hippo",
+        "Caramelo Salado"
+      ],
+      "cantidad": 3,
+      "fecha": "08-08",
+      "fecha_dow": "Viernes",
+      "observacion": ""
+    },
+    "total": 105,
+    "confirmedAt": 1754687880000
+  },
+  {
+    "id": "107",
+    "status": "confirmed",
+    "createdAt": 1754739900000,
+    "customer": {
+      "phone": "123200006"
+    },
+    "fields": {
+      "items": [
+        {
+          "tamano": "cajitas",
+          "label": "Cajitas (12€)",
+          "type": "cajitas",
+          "cantidad": 5,
+          "sabores": [
+            "Clásica",
+            "Lotus"
+          ],
+          "sabores_distribucion": [
+            {
+              "count": 4,
+              "flavor": "Clásica"
+            },
+            {
+              "count": 1,
+              "flavor": "Lotus"
+            }
+          ],
+          "fecha": "09-08",
+          "observacion": "",
+          "precioUnit": 12,
+          "total": 60
+        }
+      ],
+      "telefono": "123200006",
+      "tamano": "cajitas",
+      "sabores_distribucion": [
+        {
+          "count": 4,
+          "flavor": "Clásica"
+        },
+        {
+          "count": 1,
+          "flavor": "Lotus"
+        }
+      ],
+      "sabores": [
+        "Clásica",
+        "Lotus"
+      ],
+      "cantidad": 5,
+      "fecha": "09-08",
+      "fecha_dow": "Sábado",
+      "observacion": ""
+    },
+    "total": 60,
+    "confirmedAt": 1754740800000
+  },
+  {
+    "id": "108",
+    "status": "confirmed",
+    "createdAt": 1754832600000,
+    "customer": {
+      "phone": "123200007"
+    },
+    "fields": {
+      "items": [
+        {
+          "tamano": "cajitas",
+          "label": "Cajitas (12€)",
+          "type": "cajitas",
+          "cantidad": 1,
+          "sabores": [
+            "Pistacho",
+            "Oreo"
+          ],
+          "sabores_distribucion": [
+            {
+              "count": 1,
+              "flavor": "Pistacho"
+            },
+            {
+              "count": 1,
+              "flavor": "Oreo"
+            }
+          ],
+          "fecha": "10-08",
+          "observacion": "",
+          "precioUnit": 12,
+          "total": 12
+        }
+      ],
+      "telefono": "123200007",
+      "tamano": "cajitas",
+      "sabores_distribucion": [
+        {
+          "count": 1,
+          "flavor": "Pistacho"
+        },
+        {
+          "count": 1,
+          "flavor": "Oreo"
+        }
+      ],
+      "sabores": [
+        "Pistacho",
+        "Oreo"
+      ],
+      "cantidad": 1,
+      "fecha": "10-08",
+      "fecha_dow": "Domingo",
+      "observacion": ""
+    },
+    "total": 12,
+    "confirmedAt": 1754833500000
+  },
+  {
+    "id": "109",
+    "status": "confirmed",
+    "createdAt": 1755096300000,
+    "customer": {
+      "phone": "123200008"
+    },
+    "fields": {
+      "items": [
+        {
+          "tamano": "cajitas",
+          "label": "Cajitas (12€)",
+          "type": "cajitas",
+          "cantidad": 2,
+          "sabores": [
+            "Nocilla",
+            "Gofio"
+          ],
+          "sabores_distribucion": [
+            {
+              "count": 1,
+              "flavor": "Nocilla"
+            },
+            {
+              "count": 1,
+              "flavor": "Gofio"
+            }
+          ],
+          "fecha": "13-08",
+          "observacion": "",
+          "precioUnit": 12,
+          "total": 24
+        }
+      ],
+      "telefono": "123200008",
+      "tamano": "cajitas",
+      "sabores_distribucion": [
+        {
+          "count": 1,
+          "flavor": "Nocilla"
+        },
+        {
+          "count": 1,
+          "flavor": "Gofio"
+        }
+      ],
+      "sabores": [
+        "Nocilla",
+        "Gofio"
+      ],
+      "cantidad": 2,
+      "fecha": "13-08",
+      "fecha_dow": "Miércoles",
+      "observacion": ""
+    },
+    "total": 24,
+    "confirmedAt": 1755101460000
+  },
+  {
+    "id": "110",
+    "status": "confirmed",
+    "createdAt": 1755184500000,
+    "customer": {
+      "phone": "123200009"
+    },
+    "fields": {
+      "items": [
+        {
+          "tamano": "grande",
+          "label": "Grande (35€)",
+          "type": "entera",
+          "cantidad": 1,
+          "sabores": [
+            "Mango-Maracuyá",
+            "Hippo",
+            "Caramelo Salado"
+          ],
+          "sabores_distribucion": [
+            {
+              "count": 1,
+              "flavor": "Mango-Maracuyá"
+            },
+            {
+              "count": 1,
+              "flavor": "Hippo"
+            },
+            {
+              "count": 1,
+              "flavor": "Caramelo Salado"
+            }
+          ],
+          "fecha": "14-08",
+          "observacion": "",
+          "precioUnit": 35,
+          "total": 35
+        }
+      ],
+      "telefono": "123200009",
+      "tamano": "grande",
+      "sabores_distribucion": [
+        {
+          "count": 1,
+          "flavor": "Mango-Maracuyá"
+        },
+        {
+          "count": 1,
+          "flavor": "Hippo"
+        },
+        {
+          "count": 1,
+          "flavor": "Caramelo Salado"
+        }
+      ],
+      "sabores": [
+        "Mango-Maracuyá",
+        "Hippo",
+        "Caramelo Salado"
+      ],
+      "cantidad": 1,
+      "fecha": "14-08",
+      "fecha_dow": "Jueves",
+      "observacion": ""
+    },
+    "total": 35,
+    "confirmedAt": 1755189900000
+  },
+  {
+    "id": "111",
+    "status": "confirmed",
+    "createdAt": 1755260100000,
+    "customer": {
+      "phone": "123200010"
+    },
+    "fields": {
+      "items": [
+        {
+          "tamano": "grande",
+          "label": "Grande (35€)",
+          "type": "entera",
+          "cantidad": 2,
+          "sabores": [
+            "Clásica",
+            "Lotus",
+            "Pistacho"
+          ],
+          "sabores_distribucion": [
+            {
+              "count": 1,
+              "flavor": "Clásica"
+            },
+            {
+              "count": 1,
+              "flavor": "Lotus"
+            },
+            {
+              "count": 1,
+              "flavor": "Pistacho"
+            }
+          ],
+          "fecha": "15-08",
+          "observacion": "",
+          "precioUnit": 35,
+          "total": 70
+        }
+      ],
+      "telefono": "123200010",
+      "tamano": "grande",
+      "sabores_distribucion": [
+        {
+          "count": 1,
+          "flavor": "Clásica"
+        },
+        {
+          "count": 1,
+          "flavor": "Lotus"
+        },
+        {
+          "count": 1,
+          "flavor": "Pistacho"
+        }
+      ],
+      "sabores": [
+        "Clásica",
+        "Lotus",
+        "Pistacho"
+      ],
+      "cantidad": 2,
+      "fecha": "15-08",
+      "fecha_dow": "Viernes",
+      "observacion": ""
+    },
+    "total": 70,
+    "confirmedAt": 1755261600000
+  },
+  {
+    "id": "112",
+    "status": "confirmed",
+    "createdAt": 1755368100000,
+    "customer": {
+      "phone": "123200011"
+    },
+    "fields": {
+      "items": [
+        {
+          "tamano": "grande",
+          "label": "Grande (35€)",
+          "type": "entera",
+          "cantidad": 1,
+          "sabores": [
+            "Oreo"
+          ],
+          "sabores_distribucion": [
+            {
+              "count": 1,
+              "flavor": "Oreo"
+            }
+          ],
+          "fecha": "16-08",
+          "observacion": "",
+          "precioUnit": 35,
+          "total": 35
+        }
+      ],
+      "telefono": "123200011",
+      "tamano": "grande",
+      "sabores_distribucion": [
+        {
+          "count": 1,
+          "flavor": "Oreo"
+        }
+      ],
+      "sabores": [
+        "Oreo"
+      ],
+      "cantidad": 1,
+      "fecha": "16-08",
+      "fecha_dow": "Sábado",
+      "observacion": ""
+    },
+    "total": 35,
+    "confirmedAt": 1755373620000
+  },
+  {
+    "id": "113",
+    "status": "confirmed",
+    "createdAt": 1755426600000,
+    "customer": {
+      "phone": "123200012"
+    },
+    "fields": {
+      "items": [
+        {
+          "tamano": "grande",
+          "label": "Grande (35€)",
+          "type": "entera",
+          "cantidad": 1,
+          "sabores": [
+            "Nocilla",
+            "Gofio",
+            "Mango-Maracuyá"
+          ],
+          "sabores_distribucion": [
+            {
+              "count": 1,
+              "flavor": "Nocilla"
+            },
+            {
+              "count": 1,
+              "flavor": "Gofio"
+            },
+            {
+              "count": 1,
+              "flavor": "Mango-Maracuyá"
+            }
+          ],
+          "fecha": "17-08",
+          "observacion": "",
+          "precioUnit": 35,
+          "total": 35
+        }
+      ],
+      "telefono": "123200012",
+      "tamano": "grande",
+      "sabores_distribucion": [
+        {
+          "count": 1,
+          "flavor": "Nocilla"
+        },
+        {
+          "count": 1,
+          "flavor": "Gofio"
+        },
+        {
+          "count": 1,
+          "flavor": "Mango-Maracuyá"
+        }
+      ],
+      "sabores": [
+        "Nocilla",
+        "Gofio",
+        "Mango-Maracuyá"
+      ],
+      "cantidad": 1,
+      "fecha": "17-08",
+      "fecha_dow": "Domingo",
+      "observacion": ""
+    },
+    "total": 35,
+    "confirmedAt": 1755429960000
+  },
+  {
+    "id": "114",
+    "status": "confirmed",
+    "createdAt": 1755702900000,
+    "customer": {
+      "phone": "123200013"
+    },
+    "fields": {
+      "items": [
+        {
+          "tamano": "grande",
+          "label": "Grande (35€)",
+          "type": "entera",
+          "cantidad": 3,
+          "sabores": [
+            "Hippo"
+          ],
+          "sabores_distribucion": [
+            {
+              "count": 3,
+              "flavor": "Hippo"
+            }
+          ],
+          "fecha": "20-08",
+          "observacion": "",
+          "precioUnit": 35,
+          "total": 105
+        }
+      ],
+      "telefono": "123200013",
+      "tamano": "grande",
+      "sabores_distribucion": [
+        {
+          "count": 3,
+          "flavor": "Hippo"
+        }
+      ],
+      "sabores": [
+        "Hippo"
+      ],
+      "cantidad": 3,
+      "fecha": "20-08",
+      "fecha_dow": "Miércoles",
+      "observacion": ""
+    },
+    "total": 105,
+    "confirmedAt": 1755708180000
+  },
+  {
+    "id": "115",
+    "status": "confirmed",
+    "createdAt": 1755783000000,
+    "customer": {
+      "phone": "123200014"
+    },
+    "fields": {
+      "items": [
+        {
+          "tamano": "cajitas",
+          "label": "Cajitas (12€)",
+          "type": "cajitas",
+          "cantidad": 5,
+          "sabores": [
+            "Caramelo Salado",
+            "Clásica"
+          ],
+          "sabores_distribucion": [
+            {
+              "count": 3,
+              "flavor": "Caramelo Salado"
+            },
+            {
+              "count": 2,
+              "flavor": "Clásica"
+            }
+          ],
+          "fecha": "21-08",
+          "observacion": "",
+          "precioUnit": 12,
+          "total": 60
+        }
+      ],
+      "telefono": "123200014",
+      "tamano": "cajitas",
+      "sabores_distribucion": [
+        {
+          "count": 3,
+          "flavor": "Caramelo Salado"
+        },
+        {
+          "count": 2,
+          "flavor": "Clásica"
+        }
+      ],
+      "sabores": [
+        "Caramelo Salado",
+        "Clásica"
+      ],
+      "cantidad": 5,
+      "fecha": "21-08",
+      "fecha_dow": "Jueves",
+      "observacion": ""
+    },
+    "total": 60,
+    "confirmedAt": 1755789000000
+  },
+  {
+    "id": "116",
+    "status": "confirmed",
+    "createdAt": 1755888300000,
+    "customer": {
+      "phone": "123200015"
+    },
+    "fields": {
+      "items": [
+        {
+          "tamano": "cajitas",
+          "label": "Cajitas (12€)",
+          "type": "cajitas",
+          "cantidad": 1,
+          "sabores": [
+            "Lotus"
+          ],
+          "sabores_distribucion": [
+            {
+              "count": 1,
+              "flavor": "Lotus"
+            }
+          ],
+          "fecha": "22-08",
+          "observacion": "",
+          "precioUnit": 12,
+          "total": 12
+        }
+      ],
+      "telefono": "123200015",
+      "tamano": "cajitas",
+      "sabores_distribucion": [
+        {
+          "count": 1,
+          "flavor": "Lotus"
+        }
+      ],
+      "sabores": [
+        "Lotus"
+      ],
+      "cantidad": 1,
+      "fecha": "22-08",
+      "fecha_dow": "Viernes",
+      "observacion": ""
+    },
+    "total": 12,
+    "confirmedAt": 1755889260000
+  },
+  {
+    "id": "117",
+    "status": "confirmed",
+    "createdAt": 1755953100000,
+    "customer": {
+      "phone": "123200016"
+    },
+    "fields": {
+      "items": [
+        {
+          "tamano": "grande",
+          "label": "Grande (35€)",
+          "type": "entera",
+          "cantidad": 3,
+          "sabores": [
+            "Pistacho",
+            "Oreo",
+            "Nocilla"
+          ],
+          "sabores_distribucion": [
+            {
+              "count": 1,
+              "flavor": "Pistacho"
+            },
+            {
+              "count": 1,
+              "flavor": "Oreo"
+            },
+            {
+              "count": 1,
+              "flavor": "Nocilla"
+            }
+          ],
+          "fecha": "23-08",
+          "observacion": "",
+          "precioUnit": 35,
+          "total": 105
+        }
+      ],
+      "telefono": "123200016",
+      "tamano": "grande",
+      "sabores_distribucion": [
+        {
+          "count": 1,
+          "flavor": "Pistacho"
+        },
+        {
+          "count": 1,
+          "flavor": "Oreo"
+        },
+        {
+          "count": 1,
+          "flavor": "Nocilla"
+        }
+      ],
+      "sabores": [
+        "Pistacho",
+        "Oreo",
+        "Nocilla"
+      ],
+      "cantidad": 3,
+      "fecha": "23-08",
+      "fecha_dow": "Sábado",
+      "observacion": ""
+    },
+    "total": 105,
+    "confirmedAt": 1755957960000
+  },
+  {
+    "id": "118",
+    "status": "confirmed",
+    "createdAt": 1756056600000,
+    "customer": {
+      "phone": "123200017"
+    },
+    "fields": {
+      "items": [
+        {
+          "tamano": "cajitas",
+          "label": "Cajitas (12€)",
+          "type": "cajitas",
+          "cantidad": 1,
+          "sabores": [
+            "Gofio",
+            "Mango-Maracuyá",
+            "Hippo"
+          ],
+          "sabores_distribucion": [
+            {
+              "count": 1,
+              "flavor": "Gofio"
+            },
+            {
+              "count": 1,
+              "flavor": "Mango-Maracuyá"
+            },
+            {
+              "count": 1,
+              "flavor": "Hippo"
+            }
+          ],
+          "fecha": "24-08",
+          "observacion": "",
+          "precioUnit": 12,
+          "total": 12
+        }
+      ],
+      "telefono": "123200017",
+      "tamano": "cajitas",
+      "sabores_distribucion": [
+        {
+          "count": 1,
+          "flavor": "Gofio"
+        },
+        {
+          "count": 1,
+          "flavor": "Mango-Maracuyá"
+        },
+        {
+          "count": 1,
+          "flavor": "Hippo"
+        }
+      ],
+      "sabores": [
+        "Gofio",
+        "Mango-Maracuyá",
+        "Hippo"
+      ],
+      "cantidad": 1,
+      "fecha": "24-08",
+      "fecha_dow": "Domingo",
+      "observacion": ""
+    },
+    "total": 12,
+    "confirmedAt": 1756061100000
+  },
+  {
+    "id": "119",
+    "status": "confirmed",
+    "createdAt": 1756294200000,
+    "customer": {
+      "phone": "123200018"
+    },
+    "fields": {
+      "items": [
+        {
+          "tamano": "cajitas",
+          "label": "Cajitas (12€)",
+          "type": "cajitas",
+          "cantidad": 1,
+          "sabores": [
+            "Caramelo Salado",
+            "Clásica"
+          ],
+          "sabores_distribucion": [
+            {
+              "count": 1,
+              "flavor": "Caramelo Salado"
+            },
+            {
+              "count": 1,
+              "flavor": "Clásica"
+            }
+          ],
+          "fecha": "27-08",
+          "observacion": "",
+          "precioUnit": 12,
+          "total": 12
+        }
+      ],
+      "telefono": "123200018",
+      "tamano": "cajitas",
+      "sabores_distribucion": [
+        {
+          "count": 1,
+          "flavor": "Caramelo Salado"
+        },
+        {
+          "count": 1,
+          "flavor": "Clásica"
+        }
+      ],
+      "sabores": [
+        "Caramelo Salado",
+        "Clásica"
+      ],
+      "cantidad": 1,
+      "fecha": "27-08",
+      "fecha_dow": "Miércoles",
+      "observacion": ""
+    },
+    "total": 12,
+    "confirmedAt": 1756300380000
+  },
+  {
+    "id": "120",
+    "status": "confirmed",
+    "createdAt": 1756397700000,
+    "customer": {
+      "phone": "123200019"
+    },
+    "fields": {
+      "items": [
+        {
+          "tamano": "grande",
+          "label": "Grande (35€)",
+          "type": "entera",
+          "cantidad": 2,
+          "sabores": [
+            "Lotus",
+            "Pistacho",
+            "Oreo"
+          ],
+          "sabores_distribucion": [
+            {
+              "count": 1,
+              "flavor": "Lotus"
+            },
+            {
+              "count": 1,
+              "flavor": "Pistacho"
+            },
+            {
+              "count": 1,
+              "flavor": "Oreo"
+            }
+          ],
+          "fecha": "28-08",
+          "observacion": "",
+          "precioUnit": 35,
+          "total": 70
+        }
+      ],
+      "telefono": "123200019",
+      "tamano": "grande",
+      "sabores_distribucion": [
+        {
+          "count": 1,
+          "flavor": "Lotus"
+        },
+        {
+          "count": 1,
+          "flavor": "Pistacho"
+        },
+        {
+          "count": 1,
+          "flavor": "Oreo"
+        }
+      ],
+      "sabores": [
+        "Lotus",
+        "Pistacho",
+        "Oreo"
+      ],
+      "cantidad": 2,
+      "fecha": "28-08",
+      "fecha_dow": "Jueves",
+      "observacion": ""
+    },
+    "total": 70,
+    "confirmedAt": 1756401480000
+  },
+  {
+    "id": "121",
+    "status": "confirmed",
+    "createdAt": 1756468800000,
+    "customer": {
+      "phone": "123200020"
+    },
+    "fields": {
+      "items": [
+        {
+          "tamano": "cajitas",
+          "label": "Cajitas (12€)",
+          "type": "cajitas",
+          "cantidad": 5,
+          "sabores": [
+            "Nocilla",
+            "Gofio",
+            "Mango-Maracuyá"
+          ],
+          "sabores_distribucion": [
+            {
+              "count": 3,
+              "flavor": "Nocilla"
+            },
+            {
+              "count": 1,
+              "flavor": "Gofio"
+            },
+            {
+              "count": 1,
+              "flavor": "Mango-Maracuyá"
+            }
+          ],
+          "fecha": "29-08",
+          "observacion": "",
+          "precioUnit": 12,
+          "total": 60
+        }
+      ],
+      "telefono": "123200020",
+      "tamano": "cajitas",
+      "sabores_distribucion": [
+        {
+          "count": 3,
+          "flavor": "Nocilla"
+        },
+        {
+          "count": 1,
+          "flavor": "Gofio"
+        },
+        {
+          "count": 1,
+          "flavor": "Mango-Maracuyá"
+        }
+      ],
+      "sabores": [
+        "Nocilla",
+        "Gofio",
+        "Mango-Maracuyá"
+      ],
+      "cantidad": 5,
+      "fecha": "29-08",
+      "fecha_dow": "Viernes",
+      "observacion": ""
+    },
+    "total": 60,
+    "confirmedAt": 1756475760000
+  },
+  {
+    "id": "122",
+    "status": "confirmed",
+    "createdAt": 1756566900000,
+    "customer": {
+      "phone": "123200021"
+    },
+    "fields": {
+      "items": [
+        {
+          "tamano": "cajitas",
+          "label": "Cajitas (12€)",
+          "type": "cajitas",
+          "cantidad": 5,
+          "sabores": [
+            "Hippo"
+          ],
+          "sabores_distribucion": [
+            {
+              "count": 5,
+              "flavor": "Hippo"
+            }
+          ],
+          "fecha": "30-08",
+          "observacion": "",
+          "precioUnit": 12,
+          "total": 60
+        }
+      ],
+      "telefono": "123200021",
+      "tamano": "cajitas",
+      "sabores_distribucion": [
+        {
+          "count": 5,
+          "flavor": "Hippo"
+        }
+      ],
+      "sabores": [
+        "Hippo"
+      ],
+      "cantidad": 5,
+      "fecha": "30-08",
+      "fecha_dow": "Sábado",
+      "observacion": ""
+    },
+    "total": 60,
+    "confirmedAt": 1756571340000
+  },
+  {
+    "id": "123",
+    "status": "confirmed",
+    "createdAt": 1756654200000,
+    "customer": {
+      "phone": "123200022"
+    },
+    "fields": {
+      "items": [
+        {
+          "tamano": "grande",
+          "label": "Grande (35€)",
+          "type": "entera",
+          "cantidad": 1,
+          "sabores": [
+            "Caramelo Salado"
+          ],
+          "sabores_distribucion": [
+            {
+              "count": 1,
+              "flavor": "Caramelo Salado"
+            }
+          ],
+          "fecha": "31-08",
+          "observacion": "",
+          "precioUnit": 35,
+          "total": 35
+        }
+      ],
+      "telefono": "123200022",
+      "tamano": "grande",
+      "sabores_distribucion": [
+        {
+          "count": 1,
+          "flavor": "Caramelo Salado"
+        }
+      ],
+      "sabores": [
+        "Caramelo Salado"
+      ],
+      "cantidad": 1,
+      "fecha": "31-08",
+      "fecha_dow": "Domingo",
+      "observacion": ""
+    },
+    "total": 35,
+    "confirmedAt": 1756656300000
+  },
+  {
+    "id": "124",
+    "status": "confirmed",
+    "createdAt": 1754067600000,
+    "customer": {
+      "phone": "123200023"
+    },
+    "fields": {
+      "items": [
+        {
+          "tamano": "grande",
+          "label": "Grande (35€)",
+          "type": "entera",
+          "cantidad": 1,
+          "sabores": [
+            "Clásica"
+          ],
+          "sabores_distribucion": [
+            {
+              "count": 1,
+              "flavor": "Clásica"
+            }
+          ],
+          "fecha": "01-08",
+          "observacion": "",
+          "precioUnit": 35,
+          "total": 35
+        }
+      ],
+      "telefono": "123200023",
+      "tamano": "grande",
+      "sabores_distribucion": [
+        {
+          "count": 1,
+          "flavor": "Clásica"
+        }
+      ],
+      "sabores": [
+        "Clásica"
+      ],
+      "cantidad": 1,
+      "fecha": "01-08",
+      "fecha_dow": "Viernes",
+      "observacion": ""
+    },
+    "total": 35,
+    "confirmedAt": 1754073720000
+  },
+  {
+    "id": "125",
+    "status": "confirmed",
+    "createdAt": 1754154900000,
+    "customer": {
+      "phone": "123200024"
+    },
+    "fields": {
+      "items": [
+        {
+          "tamano": "grande",
+          "label": "Grande (35€)",
+          "type": "entera",
+          "cantidad": 3,
+          "sabores": [
+            "Lotus"
+          ],
+          "sabores_distribucion": [
+            {
+              "count": 3,
+              "flavor": "Lotus"
+            }
+          ],
+          "fecha": "02-08",
+          "observacion": "",
+          "precioUnit": 35,
+          "total": 105
+        }
+      ],
+      "telefono": "123200024",
+      "tamano": "grande",
+      "sabores_distribucion": [
+        {
+          "count": 3,
+          "flavor": "Lotus"
+        }
+      ],
+      "sabores": [
+        "Lotus"
+      ],
+      "cantidad": 3,
+      "fecha": "02-08",
+      "fecha_dow": "Sábado",
+      "observacion": ""
+    },
+    "total": 105,
+    "confirmedAt": 1754157180000
+  },
+  {
+    "id": "126",
+    "status": "confirmed",
+    "createdAt": 1754238600000,
+    "customer": {
+      "phone": "123200025"
+    },
+    "fields": {
+      "items": [
+        {
+          "tamano": "cajitas",
+          "label": "Cajitas (12€)",
+          "type": "cajitas",
+          "cantidad": 4,
+          "sabores": [
+            "Pistacho"
+          ],
+          "sabores_distribucion": [
+            {
+              "count": 4,
+              "flavor": "Pistacho"
+            }
+          ],
+          "fecha": "03-08",
+          "observacion": "",
+          "precioUnit": 12,
+          "total": 48
+        }
+      ],
+      "telefono": "123200025",
+      "tamano": "cajitas",
+      "sabores_distribucion": [
+        {
+          "count": 4,
+          "flavor": "Pistacho"
+        }
+      ],
+      "sabores": [
+        "Pistacho"
+      ],
+      "cantidad": 4,
+      "fecha": "03-08",
+      "fecha_dow": "Domingo",
+      "observacion": ""
+    },
+    "total": 48,
+    "confirmedAt": 1754242260000
+  },
+  {
+    "id": "127",
+    "status": "confirmed",
+    "createdAt": 1754492400000,
+    "customer": {
+      "phone": "123200026"
+    },
+    "fields": {
+      "items": [
+        {
+          "tamano": "cajitas",
+          "label": "Cajitas (12€)",
+          "type": "cajitas",
+          "cantidad": 5,
+          "sabores": [
+            "Oreo"
+          ],
+          "sabores_distribucion": [
+            {
+              "count": 5,
+              "flavor": "Oreo"
+            }
+          ],
+          "fecha": "06-08",
+          "observacion": "",
+          "precioUnit": 12,
+          "total": 60
+        }
+      ],
+      "telefono": "123200026",
+      "tamano": "cajitas",
+      "sabores_distribucion": [
+        {
+          "count": 5,
+          "flavor": "Oreo"
+        }
+      ],
+      "sabores": [
+        "Oreo"
+      ],
+      "cantidad": 5,
+      "fecha": "06-08",
+      "fecha_dow": "Miércoles",
+      "observacion": ""
+    },
+    "total": 60,
+    "confirmedAt": 1754497200000
+  },
+  {
+    "id": "128",
+    "status": "confirmed",
+    "createdAt": 1754564400000,
+    "customer": {
+      "phone": "123200027"
+    },
+    "fields": {
+      "items": [
+        {
+          "tamano": "grande",
+          "label": "Grande (35€)",
+          "type": "entera",
+          "cantidad": 1,
+          "sabores": [
+            "Nocilla",
+            "Gofio"
+          ],
+          "sabores_distribucion": [
+            {
+              "count": 1,
+              "flavor": "Nocilla"
+            },
+            {
+              "count": 1,
+              "flavor": "Gofio"
+            }
+          ],
+          "fecha": "07-08",
+          "observacion": "",
+          "precioUnit": 35,
+          "total": 35
+        }
+      ],
+      "telefono": "123200027",
+      "tamano": "grande",
+      "sabores_distribucion": [
+        {
+          "count": 1,
+          "flavor": "Nocilla"
+        },
+        {
+          "count": 1,
+          "flavor": "Gofio"
+        }
+      ],
+      "sabores": [
+        "Nocilla",
+        "Gofio"
+      ],
+      "cantidad": 1,
+      "fecha": "07-08",
+      "fecha_dow": "Jueves",
+      "observacion": ""
+    },
+    "total": 35,
+    "confirmedAt": 1754571300000
+  },
+  {
+    "id": "129",
+    "status": "confirmed",
+    "createdAt": 1754673300000,
+    "customer": {
+      "phone": "123200028"
+    },
+    "fields": {
+      "items": [
+        {
+          "tamano": "grande",
+          "label": "Grande (35€)",
+          "type": "entera",
+          "cantidad": 3,
+          "sabores": [
+            "Mango-Maracuyá"
+          ],
+          "sabores_distribucion": [
+            {
+              "count": 3,
+              "flavor": "Mango-Maracuyá"
+            }
+          ],
+          "fecha": "08-08",
+          "observacion": "",
+          "precioUnit": 35,
+          "total": 105
+        }
+      ],
+      "telefono": "123200028",
+      "tamano": "grande",
+      "sabores_distribucion": [
+        {
+          "count": 3,
+          "flavor": "Mango-Maracuyá"
+        }
+      ],
+      "sabores": [
+        "Mango-Maracuyá"
+      ],
+      "cantidad": 3,
+      "fecha": "08-08",
+      "fecha_dow": "Viernes",
+      "observacion": ""
+    },
+    "total": 105,
+    "confirmedAt": 1754677740000
+  },
+  {
+    "id": "130",
+    "status": "confirmed",
+    "createdAt": 1754744400000,
+    "customer": {
+      "phone": "123200029"
+    },
+    "fields": {
+      "items": [
+        {
+          "tamano": "cajitas",
+          "label": "Cajitas (12€)",
+          "type": "cajitas",
+          "cantidad": 3,
+          "sabores": [
+            "Hippo",
+            "Caramelo Salado"
+          ],
+          "sabores_distribucion": [
+            {
+              "count": 1,
+              "flavor": "Hippo"
+            },
+            {
+              "count": 2,
+              "flavor": "Caramelo Salado"
+            }
+          ],
+          "fecha": "09-08",
+          "observacion": "",
+          "precioUnit": 12,
+          "total": 36
+        }
+      ],
+      "telefono": "123200029",
+      "tamano": "cajitas",
+      "sabores_distribucion": [
+        {
+          "count": 1,
+          "flavor": "Hippo"
+        },
+        {
+          "count": 2,
+          "flavor": "Caramelo Salado"
+        }
+      ],
+      "sabores": [
+        "Hippo",
+        "Caramelo Salado"
+      ],
+      "cantidad": 3,
+      "fecha": "09-08",
+      "fecha_dow": "Sábado",
+      "observacion": ""
+    },
+    "total": 36,
+    "confirmedAt": 1754745420000
+  },
+  {
+    "id": "201",
+    "status": "confirmed",
+    "createdAt": 1746118800000,
+    "customer": {
+      "phone": "123300000"
+    },
+    "fields": {
+      "items": [
+        {
+          "tamano": "cajitas",
+          "label": "Cajitas (12€)",
+          "type": "cajitas",
+          "cantidad": 1,
+          "sabores": [
+            "Clásica"
+          ],
+          "sabores_distribucion": [
+            {
+              "count": 1,
+              "flavor": "Clásica"
+            }
+          ],
+          "fecha": "01-05",
+          "observacion": "",
+          "precioUnit": 12,
+          "total": 12
+        }
+      ],
+      "telefono": "123300000",
+      "tamano": "cajitas",
+      "sabores_distribucion": [
+        {
+          "count": 1,
+          "flavor": "Clásica"
+        }
+      ],
+      "sabores": [
+        "Clásica"
+      ],
+      "cantidad": 1,
+      "fecha": "01-05",
+      "fecha_dow": "Jueves",
+      "observacion": ""
+    },
+    "total": 12,
+    "confirmedAt": 1746124260000
+  },
+  {
+    "id": "202",
+    "status": "confirmed",
+    "createdAt": 1746203400000,
+    "customer": {
+      "phone": "123300001"
+    },
+    "fields": {
+      "items": [
+        {
+          "tamano": "cajitas",
+          "label": "Cajitas (12€)",
+          "type": "cajitas",
+          "cantidad": 2,
+          "sabores": [
+            "Lotus"
+          ],
+          "sabores_distribucion": [
+            {
+              "count": 2,
+              "flavor": "Lotus"
+            }
+          ],
+          "fecha": "02-05",
+          "observacion": "",
+          "precioUnit": 12,
+          "total": 24
+        }
+      ],
+      "telefono": "123300001",
+      "tamano": "cajitas",
+      "sabores_distribucion": [
+        {
+          "count": 2,
+          "flavor": "Lotus"
+        }
+      ],
+      "sabores": [
+        "Lotus"
+      ],
+      "cantidad": 2,
+      "fecha": "02-05",
+      "fecha_dow": "Viernes",
+      "observacion": ""
+    },
+    "total": 24,
+    "confirmedAt": 1746209820000
+  },
+  {
+    "id": "203",
+    "status": "confirmed",
+    "createdAt": 1746297900000,
+    "customer": {
+      "phone": "123300002"
+    },
+    "fields": {
+      "items": [
+        {
+          "tamano": "grande",
+          "label": "Grande (35€)",
+          "type": "entera",
+          "cantidad": 2,
+          "sabores": [
+            "Pistacho",
+            "Oreo"
+          ],
+          "sabores_distribucion": [
+            {
+              "count": 1,
+              "flavor": "Pistacho"
+            },
+            {
+              "count": 1,
+              "flavor": "Oreo"
+            }
+          ],
+          "fecha": "03-05",
+          "observacion": "",
+          "precioUnit": 35,
+          "total": 70
+        }
+      ],
+      "telefono": "123300002",
+      "tamano": "grande",
+      "sabores_distribucion": [
+        {
+          "count": 1,
+          "flavor": "Pistacho"
+        },
+        {
+          "count": 1,
+          "flavor": "Oreo"
+        }
+      ],
+      "sabores": [
+        "Pistacho",
+        "Oreo"
+      ],
+      "cantidad": 2,
+      "fecha": "03-05",
+      "fecha_dow": "Sábado",
+      "observacion": ""
+    },
+    "total": 70,
+    "confirmedAt": 1746299220000
+  },
+  {
+    "id": "204",
+    "status": "confirmed",
+    "createdAt": 1746363600000,
+    "customer": {
+      "phone": "123300003"
+    },
+    "fields": {
+      "items": [
+        {
+          "tamano": "cajitas",
+          "label": "Cajitas (12€)",
+          "type": "cajitas",
+          "cantidad": 5,
+          "sabores": [
+            "Nocilla"
+          ],
+          "sabores_distribucion": [
+            {
+              "count": 5,
+              "flavor": "Nocilla"
+            }
+          ],
+          "fecha": "04-05",
+          "observacion": "",
+          "precioUnit": 12,
+          "total": 60
+        }
+      ],
+      "telefono": "123300003",
+      "tamano": "cajitas",
+      "sabores_distribucion": [
+        {
+          "count": 5,
+          "flavor": "Nocilla"
+        }
+      ],
+      "sabores": [
+        "Nocilla"
+      ],
+      "cantidad": 5,
+      "fecha": "04-05",
+      "fecha_dow": "Domingo",
+      "observacion": ""
+    },
+    "total": 60,
+    "confirmedAt": 1746367260000
+  },
+  {
+    "id": "205",
+    "status": "confirmed",
+    "createdAt": 1746621900000,
+    "customer": {
+      "phone": "123300004"
+    },
+    "fields": {
+      "items": [
+        {
+          "tamano": "grande",
+          "label": "Grande (35€)",
+          "type": "entera",
+          "cantidad": 3,
+          "sabores": [
+            "Gofio"
+          ],
+          "sabores_distribucion": [
+            {
+              "count": 3,
+              "flavor": "Gofio"
+            }
+          ],
+          "fecha": "07-05",
+          "observacion": "",
+          "precioUnit": 35,
+          "total": 105
+        }
+      ],
+      "telefono": "123300004",
+      "tamano": "grande",
+      "sabores_distribucion": [
+        {
+          "count": 3,
+          "flavor": "Gofio"
+        }
+      ],
+      "sabores": [
+        "Gofio"
+      ],
+      "cantidad": 3,
+      "fecha": "07-05",
+      "fecha_dow": "Miércoles",
+      "observacion": ""
+    },
+    "total": 105,
+    "confirmedAt": 1746625920000
+  },
+  {
+    "id": "206",
+    "status": "confirmed",
+    "createdAt": 1746701100000,
+    "customer": {
+      "phone": "123300005"
+    },
+    "fields": {
+      "items": [
+        {
+          "tamano": "cajitas",
+          "label": "Cajitas (12€)",
+          "type": "cajitas",
+          "cantidad": 4,
+          "sabores": [
+            "Mango-Maracuyá",
+            "Hippo"
+          ],
+          "sabores_distribucion": [
+            {
+              "count": 1,
+              "flavor": "Mango-Maracuyá"
+            },
+            {
+              "count": 3,
+              "flavor": "Hippo"
+            }
+          ],
+          "fecha": "08-05",
+          "observacion": "",
+          "precioUnit": 12,
+          "total": 48
+        }
+      ],
+      "telefono": "123300005",
+      "tamano": "cajitas",
+      "sabores_distribucion": [
+        {
+          "count": 1,
+          "flavor": "Mango-Maracuyá"
+        },
+        {
+          "count": 3,
+          "flavor": "Hippo"
+        }
+      ],
+      "sabores": [
+        "Mango-Maracuyá",
+        "Hippo"
+      ],
+      "cantidad": 4,
+      "fecha": "08-05",
+      "fecha_dow": "Jueves",
+      "observacion": ""
+    },
+    "total": 48,
+    "confirmedAt": 1746703380000
+  },
+  {
+    "id": "207",
+    "status": "confirmed",
+    "createdAt": 1746792900000,
+    "customer": {
+      "phone": "123300006"
+    },
+    "fields": {
+      "items": [
+        {
+          "tamano": "grande",
+          "label": "Grande (35€)",
+          "type": "entera",
+          "cantidad": 1,
+          "sabores": [
+            "Caramelo Salado",
+            "Clásica",
+            "Lotus"
+          ],
+          "sabores_distribucion": [
+            {
+              "count": 1,
+              "flavor": "Caramelo Salado"
+            },
+            {
+              "count": 1,
+              "flavor": "Clásica"
+            },
+            {
+              "count": 1,
+              "flavor": "Lotus"
+            }
+          ],
+          "fecha": "09-05",
+          "observacion": "",
+          "precioUnit": 35,
+          "total": 35
+        }
+      ],
+      "telefono": "123300006",
+      "tamano": "grande",
+      "sabores_distribucion": [
+        {
+          "count": 1,
+          "flavor": "Caramelo Salado"
+        },
+        {
+          "count": 1,
+          "flavor": "Clásica"
+        },
+        {
+          "count": 1,
+          "flavor": "Lotus"
+        }
+      ],
+      "sabores": [
+        "Caramelo Salado",
+        "Clásica",
+        "Lotus"
+      ],
+      "cantidad": 1,
+      "fecha": "09-05",
+      "fecha_dow": "Viernes",
+      "observacion": ""
+    },
+    "total": 35,
+    "confirmedAt": 1746795420000
+  },
+  {
+    "id": "208",
+    "status": "confirmed",
+    "createdAt": 1746900000000,
+    "customer": {
+      "phone": "123300007"
+    },
+    "fields": {
+      "items": [
+        {
+          "tamano": "grande",
+          "label": "Grande (35€)",
+          "type": "entera",
+          "cantidad": 1,
+          "sabores": [
+            "Pistacho",
+            "Oreo",
+            "Nocilla"
+          ],
+          "sabores_distribucion": [
+            {
+              "count": 1,
+              "flavor": "Pistacho"
+            },
+            {
+              "count": 1,
+              "flavor": "Oreo"
+            },
+            {
+              "count": 1,
+              "flavor": "Nocilla"
+            }
+          ],
+          "fecha": "10-05",
+          "observacion": "",
+          "precioUnit": 35,
+          "total": 35
+        }
+      ],
+      "telefono": "123300007",
+      "tamano": "grande",
+      "sabores_distribucion": [
+        {
+          "count": 1,
+          "flavor": "Pistacho"
+        },
+        {
+          "count": 1,
+          "flavor": "Oreo"
+        },
+        {
+          "count": 1,
+          "flavor": "Nocilla"
+        }
+      ],
+      "sabores": [
+        "Pistacho",
+        "Oreo",
+        "Nocilla"
+      ],
+      "cantidad": 1,
+      "fecha": "10-05",
+      "fecha_dow": "Sábado",
+      "observacion": ""
+    },
+    "total": 35,
+    "confirmedAt": 1746906000000
+  },
+  {
+    "id": "209",
+    "status": "confirmed",
+    "createdAt": 1746983700000,
+    "customer": {
+      "phone": "123300008"
+    },
+    "fields": {
+      "items": [
+        {
+          "tamano": "cajitas",
+          "label": "Cajitas (12€)",
+          "type": "cajitas",
+          "cantidad": 1,
+          "sabores": [
+            "Gofio"
+          ],
+          "sabores_distribucion": [
+            {
+              "count": 1,
+              "flavor": "Gofio"
+            }
+          ],
+          "fecha": "11-05",
+          "observacion": "",
+          "precioUnit": 12,
+          "total": 12
+        }
+      ],
+      "telefono": "123300008",
+      "tamano": "cajitas",
+      "sabores_distribucion": [
+        {
+          "count": 1,
+          "flavor": "Gofio"
+        }
+      ],
+      "sabores": [
+        "Gofio"
+      ],
+      "cantidad": 1,
+      "fecha": "11-05",
+      "fecha_dow": "Domingo",
+      "observacion": ""
+    },
+    "total": 12,
+    "confirmedAt": 1746984420000
+  },
+  {
+    "id": "210",
+    "status": "confirmed",
+    "createdAt": 1747220400000,
+    "customer": {
+      "phone": "123300009"
+    },
+    "fields": {
+      "items": [
+        {
+          "tamano": "cajitas",
+          "label": "Cajitas (12€)",
+          "type": "cajitas",
+          "cantidad": 4,
+          "sabores": [
+            "Mango-Maracuyá"
+          ],
+          "sabores_distribucion": [
+            {
+              "count": 4,
+              "flavor": "Mango-Maracuyá"
+            }
+          ],
+          "fecha": "14-05",
+          "observacion": "",
+          "precioUnit": 12,
+          "total": 48
+        }
+      ],
+      "telefono": "123300009",
+      "tamano": "cajitas",
+      "sabores_distribucion": [
+        {
+          "count": 4,
+          "flavor": "Mango-Maracuyá"
+        }
+      ],
+      "sabores": [
+        "Mango-Maracuyá"
+      ],
+      "cantidad": 4,
+      "fecha": "14-05",
+      "fecha_dow": "Miércoles",
+      "observacion": ""
+    },
+    "total": 48,
+    "confirmedAt": 1747225860000
+  },
+  {
+    "id": "211",
+    "status": "confirmed",
+    "createdAt": 1747326600000,
+    "customer": {
+      "phone": "123300010"
+    },
+    "fields": {
+      "items": [
+        {
+          "tamano": "grande",
+          "label": "Grande (35€)",
+          "type": "entera",
+          "cantidad": 2,
+          "sabores": [
+            "Hippo"
+          ],
+          "sabores_distribucion": [
+            {
+              "count": 2,
+              "flavor": "Hippo"
+            }
+          ],
+          "fecha": "15-05",
+          "observacion": "",
+          "precioUnit": 35,
+          "total": 70
+        }
+      ],
+      "telefono": "123300010",
+      "tamano": "grande",
+      "sabores_distribucion": [
+        {
+          "count": 2,
+          "flavor": "Hippo"
+        }
+      ],
+      "sabores": [
+        "Hippo"
+      ],
+      "cantidad": 2,
+      "fecha": "15-05",
+      "fecha_dow": "Jueves",
+      "observacion": ""
+    },
+    "total": 70,
+    "confirmedAt": 1747328880000
+  },
+  {
+    "id": "212",
+    "status": "confirmed",
+    "createdAt": 1747412100000,
+    "customer": {
+      "phone": "123300011"
+    },
+    "fields": {
+      "items": [
+        {
+          "tamano": "cajitas",
+          "label": "Cajitas (12€)",
+          "type": "cajitas",
+          "cantidad": 4,
+          "sabores": [
+            "Caramelo Salado",
+            "Clásica"
+          ],
+          "sabores_distribucion": [
+            {
+              "count": 3,
+              "flavor": "Caramelo Salado"
+            },
+            {
+              "count": 1,
+              "flavor": "Clásica"
+            }
+          ],
+          "fecha": "16-05",
+          "observacion": "",
+          "precioUnit": 12,
+          "total": 48
+        }
+      ],
+      "telefono": "123300011",
+      "tamano": "cajitas",
+      "sabores_distribucion": [
+        {
+          "count": 3,
+          "flavor": "Caramelo Salado"
+        },
+        {
+          "count": 1,
+          "flavor": "Clásica"
+        }
+      ],
+      "sabores": [
+        "Caramelo Salado",
+        "Clásica"
+      ],
+      "cantidad": 4,
+      "fecha": "16-05",
+      "fecha_dow": "Viernes",
+      "observacion": ""
+    },
+    "total": 48,
+    "confirmedAt": 1747417500000
+  },
+  {
+    "id": "213",
+    "status": "confirmed",
+    "createdAt": 1747501200000,
+    "customer": {
+      "phone": "123300012"
+    },
+    "fields": {
+      "items": [
+        {
+          "tamano": "grande",
+          "label": "Grande (35€)",
+          "type": "entera",
+          "cantidad": 2,
+          "sabores": [
+            "Lotus"
+          ],
+          "sabores_distribucion": [
+            {
+              "count": 2,
+              "flavor": "Lotus"
+            }
+          ],
+          "fecha": "17-05",
+          "observacion": "",
+          "precioUnit": 35,
+          "total": 70
+        }
+      ],
+      "telefono": "123300012",
+      "tamano": "grande",
+      "sabores_distribucion": [
+        {
+          "count": 2,
+          "flavor": "Lotus"
+        }
+      ],
+      "sabores": [
+        "Lotus"
+      ],
+      "cantidad": 2,
+      "fecha": "17-05",
+      "fecha_dow": "Sábado",
+      "observacion": ""
+    },
+    "total": 70,
+    "confirmedAt": 1747502040000
+  },
+  {
+    "id": "214",
+    "status": "confirmed",
+    "createdAt": 1747566900000,
+    "customer": {
+      "phone": "123300013"
+    },
+    "fields": {
+      "items": [
+        {
+          "tamano": "grande",
+          "label": "Grande (35€)",
+          "type": "entera",
+          "cantidad": 3,
+          "sabores": [
+            "Pistacho",
+            "Oreo",
+            "Nocilla"
+          ],
+          "sabores_distribucion": [
+            {
+              "count": 1,
+              "flavor": "Pistacho"
+            },
+            {
+              "count": 1,
+              "flavor": "Oreo"
+            },
+            {
+              "count": 1,
+              "flavor": "Nocilla"
+            }
+          ],
+          "fecha": "18-05",
+          "observacion": "",
+          "precioUnit": 35,
+          "total": 105
+        }
+      ],
+      "telefono": "123300013",
+      "tamano": "grande",
+      "sabores_distribucion": [
+        {
+          "count": 1,
+          "flavor": "Pistacho"
+        },
+        {
+          "count": 1,
+          "flavor": "Oreo"
+        },
+        {
+          "count": 1,
+          "flavor": "Nocilla"
+        }
+      ],
+      "sabores": [
+        "Pistacho",
+        "Oreo",
+        "Nocilla"
+      ],
+      "cantidad": 3,
+      "fecha": "18-05",
+      "fecha_dow": "Domingo",
+      "observacion": ""
+    },
+    "total": 105,
+    "confirmedAt": 1747570020000
+  },
+  {
+    "id": "215",
+    "status": "confirmed",
+    "createdAt": 1747836000000,
+    "customer": {
+      "phone": "123300014"
+    },
+    "fields": {
+      "items": [
+        {
+          "tamano": "cajitas",
+          "label": "Cajitas (12€)",
+          "type": "cajitas",
+          "cantidad": 3,
+          "sabores": [
+            "Gofio",
+            "Mango-Maracuyá",
+            "Hippo"
+          ],
+          "sabores_distribucion": [
+            {
+              "count": 1,
+              "flavor": "Gofio"
+            },
+            {
+              "count": 1,
+              "flavor": "Mango-Maracuyá"
+            },
+            {
+              "count": 1,
+              "flavor": "Hippo"
+            }
+          ],
+          "fecha": "21-05",
+          "observacion": "",
+          "precioUnit": 12,
+          "total": 36
+        }
+      ],
+      "telefono": "123300014",
+      "tamano": "cajitas",
+      "sabores_distribucion": [
+        {
+          "count": 1,
+          "flavor": "Gofio"
+        },
+        {
+          "count": 1,
+          "flavor": "Mango-Maracuyá"
+        },
+        {
+          "count": 1,
+          "flavor": "Hippo"
+        }
+      ],
+      "sabores": [
+        "Gofio",
+        "Mango-Maracuyá",
+        "Hippo"
+      ],
+      "cantidad": 3,
+      "fecha": "21-05",
+      "fecha_dow": "Miércoles",
+      "observacion": ""
+    },
+    "total": 36,
+    "confirmedAt": 1747841400000
+  },
+  {
+    "id": "216",
+    "status": "confirmed",
+    "createdAt": 1747912500000,
+    "customer": {
+      "phone": "123300015"
+    },
+    "fields": {
+      "items": [
+        {
+          "tamano": "grande",
+          "label": "Grande (35€)",
+          "type": "entera",
+          "cantidad": 1,
+          "sabores": [
+            "Caramelo Salado",
+            "Clásica",
+            "Lotus"
+          ],
+          "sabores_distribucion": [
+            {
+              "count": 1,
+              "flavor": "Caramelo Salado"
+            },
+            {
+              "count": 1,
+              "flavor": "Clásica"
+            },
+            {
+              "count": 1,
+              "flavor": "Lotus"
+            }
+          ],
+          "fecha": "22-05",
+          "observacion": "",
+          "precioUnit": 35,
+          "total": 35
+        }
+      ],
+      "telefono": "123300015",
+      "tamano": "grande",
+      "sabores_distribucion": [
+        {
+          "count": 1,
+          "flavor": "Caramelo Salado"
+        },
+        {
+          "count": 1,
+          "flavor": "Clásica"
+        },
+        {
+          "count": 1,
+          "flavor": "Lotus"
+        }
+      ],
+      "sabores": [
+        "Caramelo Salado",
+        "Clásica",
+        "Lotus"
+      ],
+      "cantidad": 1,
+      "fecha": "22-05",
+      "fecha_dow": "Jueves",
+      "observacion": ""
+    },
+    "total": 35,
+    "confirmedAt": 1747914780000
+  },
+  {
+    "id": "217",
+    "status": "confirmed",
+    "createdAt": 1748024100000,
+    "customer": {
+      "phone": "123300016"
+    },
+    "fields": {
+      "items": [
+        {
+          "tamano": "grande",
+          "label": "Grande (35€)",
+          "type": "entera",
+          "cantidad": 1,
+          "sabores": [
+            "Pistacho",
+            "Oreo",
+            "Nocilla"
+          ],
+          "sabores_distribucion": [
+            {
+              "count": 1,
+              "flavor": "Pistacho"
+            },
+            {
+              "count": 1,
+              "flavor": "Oreo"
+            },
+            {
+              "count": 1,
+              "flavor": "Nocilla"
+            }
+          ],
+          "fecha": "23-05",
+          "observacion": "",
+          "precioUnit": 35,
+          "total": 35
+        }
+      ],
+      "telefono": "123300016",
+      "tamano": "grande",
+      "sabores_distribucion": [
+        {
+          "count": 1,
+          "flavor": "Pistacho"
+        },
+        {
+          "count": 1,
+          "flavor": "Oreo"
+        },
+        {
+          "count": 1,
+          "flavor": "Nocilla"
+        }
+      ],
+      "sabores": [
+        "Pistacho",
+        "Oreo",
+        "Nocilla"
+      ],
+      "cantidad": 1,
+      "fecha": "23-05",
+      "fecha_dow": "Viernes",
+      "observacion": ""
+    },
+    "total": 35,
+    "confirmedAt": 1748026440000
+  },
+  {
+    "id": "218",
+    "status": "confirmed",
+    "createdAt": 1748099700000,
+    "customer": {
+      "phone": "123300017"
+    },
+    "fields": {
+      "items": [
+        {
+          "tamano": "cajitas",
+          "label": "Cajitas (12€)",
+          "type": "cajitas",
+          "cantidad": 3,
+          "sabores": [
+            "Gofio",
+            "Mango-Maracuyá",
+            "Hippo"
+          ],
+          "sabores_distribucion": [
+            {
+              "count": 1,
+              "flavor": "Gofio"
+            },
+            {
+              "count": 1,
+              "flavor": "Mango-Maracuyá"
+            },
+            {
+              "count": 1,
+              "flavor": "Hippo"
+            }
+          ],
+          "fecha": "24-05",
+          "observacion": "",
+          "precioUnit": 12,
+          "total": 36
+        }
+      ],
+      "telefono": "123300017",
+      "tamano": "cajitas",
+      "sabores_distribucion": [
+        {
+          "count": 1,
+          "flavor": "Gofio"
+        },
+        {
+          "count": 1,
+          "flavor": "Mango-Maracuyá"
+        },
+        {
+          "count": 1,
+          "flavor": "Hippo"
+        }
+      ],
+      "sabores": [
+        "Gofio",
+        "Mango-Maracuyá",
+        "Hippo"
+      ],
+      "cantidad": 3,
+      "fecha": "24-05",
+      "fecha_dow": "Sábado",
+      "observacion": ""
+    },
+    "total": 36,
+    "confirmedAt": 1748105220000
+  },
+  {
+    "id": "219",
+    "status": "confirmed",
+    "createdAt": 1748194200000,
+    "customer": {
+      "phone": "123300018"
+    },
+    "fields": {
+      "items": [
+        {
+          "tamano": "cajitas",
+          "label": "Cajitas (12€)",
+          "type": "cajitas",
+          "cantidad": 1,
+          "sabores": [
+            "Caramelo Salado"
+          ],
+          "sabores_distribucion": [
+            {
+              "count": 1,
+              "flavor": "Caramelo Salado"
+            }
+          ],
+          "fecha": "25-05",
+          "observacion": "",
+          "precioUnit": 12,
+          "total": 12
+        }
+      ],
+      "telefono": "123300018",
+      "tamano": "cajitas",
+      "sabores_distribucion": [
+        {
+          "count": 1,
+          "flavor": "Caramelo Salado"
+        }
+      ],
+      "sabores": [
+        "Caramelo Salado"
+      ],
+      "cantidad": 1,
+      "fecha": "25-05",
+      "fecha_dow": "Domingo",
+      "observacion": ""
+    },
+    "total": 12,
+    "confirmedAt": 1748201400000
+  },
+  {
+    "id": "220",
+    "status": "confirmed",
+    "createdAt": 1748449800000,
+    "customer": {
+      "phone": "123300019"
+    },
+    "fields": {
+      "items": [
+        {
+          "tamano": "grande",
+          "label": "Grande (35€)",
+          "type": "entera",
+          "cantidad": 1,
+          "sabores": [
+            "Clásica",
+            "Lotus",
+            "Pistacho"
+          ],
+          "sabores_distribucion": [
+            {
+              "count": 1,
+              "flavor": "Clásica"
+            },
+            {
+              "count": 1,
+              "flavor": "Lotus"
+            },
+            {
+              "count": 1,
+              "flavor": "Pistacho"
+            }
+          ],
+          "fecha": "28-05",
+          "observacion": "",
+          "precioUnit": 35,
+          "total": 35
+        }
+      ],
+      "telefono": "123300019",
+      "tamano": "grande",
+      "sabores_distribucion": [
+        {
+          "count": 1,
+          "flavor": "Clásica"
+        },
+        {
+          "count": 1,
+          "flavor": "Lotus"
+        },
+        {
+          "count": 1,
+          "flavor": "Pistacho"
+        }
+      ],
+      "sabores": [
+        "Clásica",
+        "Lotus",
+        "Pistacho"
+      ],
+      "cantidad": 1,
+      "fecha": "28-05",
+      "fecha_dow": "Miércoles",
+      "observacion": ""
+    },
+    "total": 35,
+    "confirmedAt": 1748450400000
+  },
+  {
+    "id": "221",
+    "status": "confirmed",
+    "createdAt": 1748528100000,
+    "customer": {
+      "phone": "123300020"
+    },
+    "fields": {
+      "items": [
+        {
+          "tamano": "grande",
+          "label": "Grande (35€)",
+          "type": "entera",
+          "cantidad": 3,
+          "sabores": [
+            "Oreo",
+            "Nocilla",
+            "Gofio"
+          ],
+          "sabores_distribucion": [
+            {
+              "count": 1,
+              "flavor": "Oreo"
+            },
+            {
+              "count": 1,
+              "flavor": "Nocilla"
+            },
+            {
+              "count": 1,
+              "flavor": "Gofio"
+            }
+          ],
+          "fecha": "29-05",
+          "observacion": "",
+          "precioUnit": 35,
+          "total": 105
+        }
+      ],
+      "telefono": "123300020",
+      "tamano": "grande",
+      "sabores_distribucion": [
+        {
+          "count": 1,
+          "flavor": "Oreo"
+        },
+        {
+          "count": 1,
+          "flavor": "Nocilla"
+        },
+        {
+          "count": 1,
+          "flavor": "Gofio"
+        }
+      ],
+      "sabores": [
+        "Oreo",
+        "Nocilla",
+        "Gofio"
+      ],
+      "cantidad": 3,
+      "fecha": "29-05",
+      "fecha_dow": "Jueves",
+      "observacion": ""
+    },
+    "total": 105,
+    "confirmedAt": 1748534040000
+  },
+  {
+    "id": "222",
+    "status": "confirmed",
+    "createdAt": 1748599200000,
+    "customer": {
+      "phone": "123300021"
+    },
+    "fields": {
+      "items": [
+        {
+          "tamano": "cajitas",
+          "label": "Cajitas (12€)",
+          "type": "cajitas",
+          "cantidad": 2,
+          "sabores": [
+            "Mango-Maracuyá",
+            "Hippo",
+            "Caramelo Salado"
+          ],
+          "sabores_distribucion": [
+            {
+              "count": 1,
+              "flavor": "Mango-Maracuyá"
+            },
+            {
+              "count": 1,
+              "flavor": "Hippo"
+            },
+            {
+              "count": 1,
+              "flavor": "Caramelo Salado"
+            }
+          ],
+          "fecha": "30-05",
+          "observacion": "",
+          "precioUnit": 12,
+          "total": 24
+        }
+      ],
+      "telefono": "123300021",
+      "tamano": "cajitas",
+      "sabores_distribucion": [
+        {
+          "count": 1,
+          "flavor": "Mango-Maracuyá"
+        },
+        {
+          "count": 1,
+          "flavor": "Hippo"
+        },
+        {
+          "count": 1,
+          "flavor": "Caramelo Salado"
+        }
+      ],
+      "sabores": [
+        "Mango-Maracuyá",
+        "Hippo",
+        "Caramelo Salado"
+      ],
+      "cantidad": 2,
+      "fecha": "30-05",
+      "fecha_dow": "Viernes",
+      "observacion": ""
+    },
+    "total": 24,
+    "confirmedAt": 1748600040000
+  },
+  {
+    "id": "223",
+    "status": "confirmed",
+    "createdAt": 1748687400000,
+    "customer": {
+      "phone": "123300022"
+    },
+    "fields": {
+      "items": [
+        {
+          "tamano": "cajitas",
+          "label": "Cajitas (12€)",
+          "type": "cajitas",
+          "cantidad": 4,
+          "sabores": [
+            "Clásica"
+          ],
+          "sabores_distribucion": [
+            {
+              "count": 4,
+              "flavor": "Clásica"
+            }
+          ],
+          "fecha": "31-05",
+          "observacion": "",
+          "precioUnit": 12,
+          "total": 48
+        }
+      ],
+      "telefono": "123300022",
+      "tamano": "cajitas",
+      "sabores_distribucion": [
+        {
+          "count": 4,
+          "flavor": "Clásica"
+        }
+      ],
+      "sabores": [
+        "Clásica"
+      ],
+      "cantidad": 4,
+      "fecha": "31-05",
+      "fecha_dow": "Sábado",
+      "observacion": ""
+    },
+    "total": 48,
+    "confirmedAt": 1748692140000
+  },
+  {
+    "id": "224",
+    "status": "confirmed",
+    "createdAt": 1746095400000,
+    "customer": {
+      "phone": "123300023"
+    },
+    "fields": {
+      "items": [
+        {
+          "tamano": "cajitas",
+          "label": "Cajitas (12€)",
+          "type": "cajitas",
+          "cantidad": 1,
+          "sabores": [
+            "Lotus",
+            "Pistacho"
+          ],
+          "sabores_distribucion": [
+            {
+              "count": 1,
+              "flavor": "Lotus"
+            },
+            {
+              "count": 1,
+              "flavor": "Pistacho"
+            }
+          ],
+          "fecha": "01-05",
+          "observacion": "",
+          "precioUnit": 12,
+          "total": 12
+        }
+      ],
+      "telefono": "123300023",
+      "tamano": "cajitas",
+      "sabores_distribucion": [
+        {
+          "count": 1,
+          "flavor": "Lotus"
+        },
+        {
+          "count": 1,
+          "flavor": "Pistacho"
+        }
+      ],
+      "sabores": [
+        "Lotus",
+        "Pistacho"
+      ],
+      "cantidad": 1,
+      "fecha": "01-05",
+      "fecha_dow": "Jueves",
+      "observacion": ""
+    },
+    "total": 12,
+    "confirmedAt": 1746097260000
+  },
+  {
+    "id": "225",
+    "status": "confirmed",
+    "createdAt": 1746211500000,
+    "customer": {
+      "phone": "123300024"
+    },
+    "fields": {
+      "items": [
+        {
+          "tamano": "cajitas",
+          "label": "Cajitas (12€)",
+          "type": "cajitas",
+          "cantidad": 2,
+          "sabores": [
+            "Oreo"
+          ],
+          "sabores_distribucion": [
+            {
+              "count": 2,
+              "flavor": "Oreo"
+            }
+          ],
+          "fecha": "02-05",
+          "observacion": "",
+          "precioUnit": 12,
+          "total": 24
+        }
+      ],
+      "telefono": "123300024",
+      "tamano": "cajitas",
+      "sabores_distribucion": [
+        {
+          "count": 2,
+          "flavor": "Oreo"
+        }
+      ],
+      "sabores": [
+        "Oreo"
+      ],
+      "cantidad": 2,
+      "fecha": "02-05",
+      "fecha_dow": "Viernes",
+      "observacion": ""
+    },
+    "total": 24,
+    "confirmedAt": 1746216540000
+  },
+  {
+    "id": "226",
+    "status": "confirmed",
+    "createdAt": 1746288000000,
+    "customer": {
+      "phone": "123300025"
+    },
+    "fields": {
+      "items": [
+        {
+          "tamano": "cajitas",
+          "label": "Cajitas (12€)",
+          "type": "cajitas",
+          "cantidad": 3,
+          "sabores": [
+            "Nocilla",
+            "Gofio"
+          ],
+          "sabores_distribucion": [
+            {
+              "count": 2,
+              "flavor": "Nocilla"
+            },
+            {
+              "count": 1,
+              "flavor": "Gofio"
+            }
+          ],
+          "fecha": "03-05",
+          "observacion": "",
+          "precioUnit": 12,
+          "total": 36
+        }
+      ],
+      "telefono": "123300025",
+      "tamano": "cajitas",
+      "sabores_distribucion": [
+        {
+          "count": 2,
+          "flavor": "Nocilla"
+        },
+        {
+          "count": 1,
+          "flavor": "Gofio"
+        }
+      ],
+      "sabores": [
+        "Nocilla",
+        "Gofio"
+      ],
+      "cantidad": 3,
+      "fecha": "03-05",
+      "fecha_dow": "Sábado",
+      "observacion": ""
+    },
+    "total": 36,
+    "confirmedAt": 1746289620000
+  },
+  {
+    "id": "227",
+    "status": "confirmed",
+    "createdAt": 1746368100000,
+    "customer": {
+      "phone": "123300026"
+    },
+    "fields": {
+      "items": [
+        {
+          "tamano": "cajitas",
+          "label": "Cajitas (12€)",
+          "type": "cajitas",
+          "cantidad": 4,
+          "sabores": [
+            "Mango-Maracuyá"
+          ],
+          "sabores_distribucion": [
+            {
+              "count": 4,
+              "flavor": "Mango-Maracuyá"
+            }
+          ],
+          "fecha": "04-05",
+          "observacion": "",
+          "precioUnit": 12,
+          "total": 48
+        }
+      ],
+      "telefono": "123300026",
+      "tamano": "cajitas",
+      "sabores_distribucion": [
+        {
+          "count": 4,
+          "flavor": "Mango-Maracuyá"
+        }
+      ],
+      "sabores": [
+        "Mango-Maracuyá"
+      ],
+      "cantidad": 4,
+      "fecha": "04-05",
+      "fecha_dow": "Domingo",
+      "observacion": ""
+    },
+    "total": 48,
+    "confirmedAt": 1746374400000
+  },
+  {
+    "id": "228",
+    "status": "confirmed",
+    "createdAt": 1746639000000,
+    "customer": {
+      "phone": "123300027"
+    },
+    "fields": {
+      "items": [
+        {
+          "tamano": "cajitas",
+          "label": "Cajitas (12€)",
+          "type": "cajitas",
+          "cantidad": 2,
+          "sabores": [
+            "Hippo"
+          ],
+          "sabores_distribucion": [
+            {
+              "count": 2,
+              "flavor": "Hippo"
+            }
+          ],
+          "fecha": "07-05",
+          "observacion": "",
+          "precioUnit": 12,
+          "total": 24
+        }
+      ],
+      "telefono": "123300027",
+      "tamano": "cajitas",
+      "sabores_distribucion": [
+        {
+          "count": 2,
+          "flavor": "Hippo"
+        }
+      ],
+      "sabores": [
+        "Hippo"
+      ],
+      "cantidad": 2,
+      "fecha": "07-05",
+      "fecha_dow": "Miércoles",
+      "observacion": ""
+    },
+    "total": 24,
+    "confirmedAt": 1746641640000
+  },
+  {
+    "id": "229",
+    "status": "confirmed",
+    "createdAt": 1746711900000,
+    "customer": {
+      "phone": "123300028"
+    },
+    "fields": {
+      "items": [
+        {
+          "tamano": "grande",
+          "label": "Grande (35€)",
+          "type": "entera",
+          "cantidad": 1,
+          "sabores": [
+            "Caramelo Salado",
+            "Clásica"
+          ],
+          "sabores_distribucion": [
+            {
+              "count": 1,
+              "flavor": "Caramelo Salado"
+            },
+            {
+              "count": 1,
+              "flavor": "Clásica"
+            }
+          ],
+          "fecha": "08-05",
+          "observacion": "",
+          "precioUnit": 35,
+          "total": 35
+        }
+      ],
+      "telefono": "123300028",
+      "tamano": "grande",
+      "sabores_distribucion": [
+        {
+          "count": 1,
+          "flavor": "Caramelo Salado"
+        },
+        {
+          "count": 1,
+          "flavor": "Clásica"
+        }
+      ],
+      "sabores": [
+        "Caramelo Salado",
+        "Clásica"
+      ],
+      "cantidad": 1,
+      "fecha": "08-05",
+      "fecha_dow": "Jueves",
+      "observacion": ""
+    },
+    "total": 35,
+    "confirmedAt": 1746714720000
+  },
+  {
+    "id": "230",
+    "status": "confirmed",
+    "createdAt": 1746805500000,
+    "customer": {
+      "phone": "123300029"
+    },
+    "fields": {
+      "items": [
+        {
+          "tamano": "cajitas",
+          "label": "Cajitas (12€)",
+          "type": "cajitas",
+          "cantidad": 5,
+          "sabores": [
+            "Lotus",
+            "Pistacho"
+          ],
+          "sabores_distribucion": [
+            {
+              "count": 3,
+              "flavor": "Lotus"
+            },
+            {
+              "count": 2,
+              "flavor": "Pistacho"
+            }
+          ],
+          "fecha": "09-05",
+          "observacion": "",
+          "precioUnit": 12,
+          "total": 60
+        }
+      ],
+      "telefono": "123300029",
+      "tamano": "cajitas",
+      "sabores_distribucion": [
+        {
+          "count": 3,
+          "flavor": "Lotus"
+        },
+        {
+          "count": 2,
+          "flavor": "Pistacho"
+        }
+      ],
+      "sabores": [
+        "Lotus",
+        "Pistacho"
+      ],
+      "cantidad": 5,
+      "fecha": "09-05",
+      "fecha_dow": "Viernes",
+      "observacion": ""
+    },
+    "total": 60,
+    "confirmedAt": 1746810960000
+  }
+]

@@ -53,6 +53,19 @@
         <div id="list-cancelados" class="card-list"></div>
         <div id="empty-cancelados" class="empty">No hay pedidos cancelados.</div>
       </div>
+
+      <div id="panel-historico" class="panel" data-name="historico">
+        <div class="historico-toolbar">
+          <label>
+            Mes:
+            <input id="histMonth" type="month" />
+          </label>
+          <button id="histReload" class="btn btn-sm">Actualizar</button>
+        </div>
+        <div id="histSummary" class="hist-summary"></div>
+        <div id="histSabores" class="hist-sabores"></div>
+        <div id="histTamanos" class="hist-tamanos"></div>
+      </div>
     </section>
   </main>
 
@@ -69,6 +82,10 @@
       <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6h12l-1 14H7L6 6zm3-2h6l1 2H8l1-2z"/></svg>
       <span>Cancelados</span>
       <span id="badge-cancelados" class="tab-badge" hidden>0</span>
+    </button>
+    <button class="tab" data-target="historico">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M13 3a9 9 0 1 0 8.95 10.17 1 1 0 0 0-1-.83h-2a1 1 0 0 0-.94.66A6 6 0 1 1 18 9h-3l4 5 4-5h-2A9 9 0 0 0 13 3z"/></svg>
+      <span>Histórico</span>
     </button>
   </nav>
 

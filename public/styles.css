@@ -1,3 +1,32 @@
+/* === Layout centrado con bordes laterales === */
+@media (min-width: 800px) {
+	.app-main, .tabs-container {
+		max-width: 900px !important;
+		margin: 0 auto !important;
+		left: 0 !important;
+		right: 0 !important;
+		padding-left: 0 !important;
+		padding-right: 0 !important;
+	}
+	.panel, #panel-historico {
+		max-width: 900px !important;
+		margin: 0 auto !important;
+		left: 0 !important;
+		right: 0 !important;
+		width: 100%;
+		border-radius: 18px;
+		box-shadow: 0 2px 18px -6px rgba(0,0,0,.08);
+		background: #181f2a;
+	}
+}
+#panel-historico .hist-summary,
+#panel-historico .hist-sabores,
+#panel-historico .hist-tamanos {
+	color: #222e3a;
+}
+.bar-row .bar-wrap { background:#e5e7eb; }
+.bar-row .bar { background:linear-gradient(90deg,#2563eb,#38bdf8); opacity:0.85; }
+.bar-row .flavor, .bar-row .count { color:#222e3a; }
 /* =============================================
 	 Tema claro elegante - Cheesecakes Dashboard
 	 ============================================= */
@@ -231,6 +260,18 @@ table.tabla td:nth-last-child(2){ width:200px; }
 /* =============================================
 	 Pantalla Login / Auth
 	 ============================================= */
+/* === Tablet landscape/portrait: ancho completo === */
+@media (min-width: 800px) {
+	.app-main, .tabs-container, .panel, #panel-historico {
+		width: 100vw !important;
+		max-width: 100vw !important;
+		margin: 0 !important;
+		left: 0 !important;
+		right: 0 !important;
+		padding-left: 0 !important;
+		padding-right: 0 !important;
+	}
+}
 .auth-body { min-height:100dvh; display:flex; align-items:center; justify-content:center; background:linear-gradient(135deg,#f1f5f9,#e2e8f0); padding:32px 16px; }
 .auth-wrapper { width:100%; max-width:420px; }
 .auth-card { background:#ffffff; border:1px solid #e5e7eb; border-radius:16px; box-shadow:0 8px 28px -6px rgba(0,0,0,.15), 0 4px 10px -4px rgba(0,0,0,.08); padding:32px 30px 26px; display:flex; flex-direction:column; gap:20px; position:relative; overflow:hidden; }
@@ -481,13 +522,12 @@ body.mobile-app{
 }
 .toast.show{ opacity:1; transform:translate(-50%, -4px); }
 
-/* Desktop hard-limit (optional) */
+/* Desktop / tablet layout: limitar ancho sin bloquear uso */
 @media (min-width: 800px){
-	body.mobile-app::before{
-		content:'Este panel está optimizado para móvil. Reduce el ancho o usa el teléfono.';
-		position:fixed; inset:0; display:grid; place-items:center; z-index:9999;
-		background:#0e1621; color:#b6c3d3; padding:2rem; text-align:center;
-	}
+  body.mobile-app{ display:flex; justify-content:center; }
+  body.mobile-app .app-main{ width:100%; max-width:720px; }
+  body.mobile-app .tabbar{ max-width:720px; margin:0 auto; }
+  body.mobile-app .app-header{ max-width:720px; margin:0 auto; width:100%; }
 }
 /* =============================================
 	Mobile App Shell (header, tabs, cards, modal)
@@ -582,4 +622,63 @@ html, body, #app, .main-content, .container, .app-root{
 #prodResult th{ font-size:.65rem; text-transform:uppercase; letter-spacing:.6px; opacity:.75; }
 #prodResult tr:last-child td{ border-bottom:none; }
 #prodResult .total-row td{ font-weight:600; }
+
+/* =============================
+	 Histórico mensual
+	 ============================= */
+#panel-historico { padding:12px 10px 70px; display:flex; flex-direction:column; gap:14px; }
+#panel-historico {
+	max-width: 700px;
+	margin: 0 auto;
+	min-height: 400px;
+}
+#panel-historico .historico-toolbar { display:flex; gap:12px; align-items:center; flex-wrap:wrap; }
+#panel-historico .historico-toolbar input[type=month]{ background:#fff; border:1px solid #d1d5db; padding:6px 8px; border-radius:8px; font:inherit; }
+#panel-historico .hist-summary { font-size:.8rem; background:#ffffff; border:1px solid #e2e8f0; padding:10px 12px; border-radius:10px; display:flex; flex-wrap:wrap; gap:18px; }
+#panel-historico .hist-summary {
+	font-size: 1rem;
+	padding: 18px 16px;
+	gap: 28px;
+}
+#panel-historico .hist-summary .metric { display:flex; flex-direction:column; gap:2px; }
+#panel-historico .hist-summary .metric span.label { font-size:.65rem; text-transform:uppercase; letter-spacing:.5px; opacity:.65; font-weight:600; }
+#panel-historico .hist-summary .metric span.value { font-weight:700; font-size:.95rem; }
+#panel-historico .hist-summary .metric span.value {
+	font-size: 1.25rem;
+}
+
+#panel-historico .hist-sabores, #panel-historico .hist-tamanos { background:#ffffff; border:1px solid #e2e8f0; padding:12px 14px; border-radius:12px; }
+#panel-historico .hist-sabores, #panel-historico .hist-tamanos {
+	padding: 18px 16px;
+	font-size: 1rem;
+}
+#panel-historico h4 { margin:0 0 10px; font-size:.8rem; letter-spacing:.5px; text-transform:uppercase; opacity:.7; }
+.bar-row { display:flex; align-items:center; gap:10px; margin:4px 0; font-size:.7rem; }
+.bar-row .flavor { flex:0 0 120px; font-weight:600; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.bar-row .flavor {
+	font-size: 1rem;
+}
+.bar-row .bar-wrap { flex:1; background:#eef2f7; border-radius:40px; height:10px; position:relative; overflow:hidden; }
+.bar-row .bar { position:absolute; inset:0; width:0; background:linear-gradient(90deg,#2563eb,#38bdf8); transition:width .5s; }
+.bar-row .count { flex:0 0 50px; text-align:right; font-weight:600; }
+.bar-row .count {
+	font-size: 1rem;
+}
+
+@media (max-width:640px){
+	#panel-historico .hist-summary { flex-direction:column; align-items:flex-start; }
+	.bar-row .flavor { flex:0 0 90px; }
+	#panel-historico {
+		max-width: 100vw;
+		padding: 8px 2vw 70px;
+		min-height: 300px;
+	}
+	#panel-historico .hist-summary, #panel-historico .hist-sabores, #panel-historico .hist-tamanos {
+		font-size: 0.95rem;
+		padding: 12px 6px;
+	}
+	.bar-row .flavor, .bar-row .count {
+		font-size: 0.95rem;
+	}
+}
 
