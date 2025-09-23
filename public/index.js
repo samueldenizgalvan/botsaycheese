@@ -867,8 +867,9 @@ function renderBarRows(container, map){
   let max = 0; for(const [,v] of entries) if(v>max) max=v;
   if(entries.length===0){ container.innerHTML='<div style="opacity:.6;font-size:.7rem;">Sin datos</div>'; return; }
   for(const [name,val] of entries){
+    const intVal = Math.round(val);
     const row=document.createElement('div'); row.className='bar-row';
-    row.innerHTML=`<div class="flavor" title="${safe(name)}">${safe(name)}</div><div class="bar-wrap"><div class="bar" style="width:${max? ((val/max)*100).toFixed(1):0}%;"></div></div><div class="count">${val}</div>`;
+    row.innerHTML=`<div class="flavor" title="${safe(name)}">${safe(name)}</div><div class="bar-wrap"><div class="bar" style="width:${max? ((val/max)*100).toFixed(1):0}%;"></div></div><div class="count">${intVal}</div>`;
     container.appendChild(row);
   }
 }
