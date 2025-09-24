@@ -36,13 +36,15 @@ router.get('/', async (req,res)=>{
     let totalImporte = 0;
     const saboresMap = {};
     const tiposMap = {}; // tamano
+    let totalProductos = 0;
     for(const p of all){
       const items = (p?.fields?.items && Array.isArray(p.fields.items)) ? p.fields.items : [{ tamano: p?.fields?.tamano || p.tamano, cantidad: p?.fields?.cantidad || p.cantidad, sabores: p?.fields?.sabores || p.sabores, total: p.total }];
       for(const it of items){
         const tam = (it.tamano||'').toLowerCase();
-        if(!tiposMap[tam]) tiposMap[tam]=0;
         const cant = Number(it.cantidad)||1;
+        if(!tiposMap[tam]) tiposMap[tam]=0;
         tiposMap[tam]+=cant;
+        totalProductos += cant;
         const sabores = Array.isArray(it.sabores)? it.sabores : [];
         const distrib = Array.isArray(it.sabores_distribucion)? it.sabores_distribucion : p?.fields?.sabores_distribucion;
         if(Array.isArray(distrib)){
@@ -51,17 +53,22 @@ router.get('/', async (req,res)=>{
             if(!saboresMap[key]) saboresMap[key]=0;
             saboresMap[key]+= Number(d.count)||0;
           }
-        } else {
+        } else if(sabores.length){
           for(const s of sabores){
             const key = `${s} - ${tam}`;
             if(!saboresMap[key]) saboresMap[key]=0;
             saboresMap[key]+= cant / (sabores.length||1);
           }
+        } else {
+          // Si no hay sabores, sumar como "Sin sabor"
+          const key = `Sin sabor - ${tam}`;
+          if(!saboresMap[key]) saboresMap[key]=0;
+          saboresMap[key]+= cant;
         }
         totalImporte += Number(it.total)||0;
       }
     }
-    res.json({ month, totalPedidos, totalImporte, sabores: saboresMap, tamanos: tiposMap });
+    res.json({ month, totalPedidos, totalProductos, totalImporte, sabores: saboresMap, tamanos: tiposMap });
   } catch(e){
     console.error('[historico] error', e);
     res.status(500).json({ error: e.message });
