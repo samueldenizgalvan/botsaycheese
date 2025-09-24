@@ -284,7 +284,7 @@ function renderCard(order){
       <span class="status ${isCanceled?'canceled':(isConfirmed?'confirmed':'pending')} ${wasReplaced?'modified-cancel':''} ${(!isCanceled && !isConfirmed && isModified)?'modified-pending':''}">${safe(statusLabel)}</span>
     </div>
     <div class="row"><strong>Tel:</strong> <span>${safe(telefono)}</span></div>
-    ${(isPending||isConfirmed) && fechaRecogida ? `<div class="row"><strong>Recogida:</strong> <span>${safe(fechaRecogida)}</span></div>` : ''}
+  ${fechaRecogida ? `<div class="row"><strong>Recogida:</strong> <span>${safe(fechaRecogida)}</span></div>` : ''}
     
     ${itemsHtml}
     ${total!=null? `<div class="row"><strong>Total:</strong> <span>${safe(String(total))}€</span></div>`:''}
@@ -861,31 +861,53 @@ function ensureHistoricalMonthInput(){
   const inp = $id('histMonth'); if(!inp) return;
   if(!inp.value) inp.value = currentMonthStr();
 }
-function renderBarRows(container, map){
+function renderBarRowsByType(container, map){
   if(!container) return; container.innerHTML='';
-  const entries = Object.entries(map||{}).sort((a,b)=> b[1]-a[1]);
-  let max = 0; for(const [,v] of entries) if(v>max) max=v;
-  if(entries.length===0){ container.innerHTML='<div style="opacity:.6;font-size:.7rem;">Sin datos</div>'; return; }
-  for(const [name,val] of entries){
-    const intVal = Math.round(val);
-    const row=document.createElement('div'); row.className='bar-row';
-    row.innerHTML=`<div class="flavor" title="${safe(name)}">${safe(name)}</div><div class="bar-wrap"><div class="bar" style="width:${max? ((val/max)*100).toFixed(1):0}%;"></div></div><div class="count">${intVal}</div>`;
-    container.appendChild(row);
-  }
+  // Agrupar por sabor y tipo
+    const validKeys = Object.keys(map).filter(k => {
+      if(!k || typeof k !== 'string') return false;
+      const parts = k.split(' - ');
+      return parts.length === 2 && parts[0] && parts[1];
+    });
+  if(validKeys.length === 0){ container.innerHTML=''; return; }
+    const saborTipo = {};
+    const tiposSet = new Set();
+    for(const key of validKeys){
+      const [sabor, tipo] = key.split(' - ');
+      if(!sabor || !tipo) continue;
+      if(!saborTipo[sabor]) saborTipo[sabor] = {};
+      saborTipo[sabor][tipo] = Math.round(map[key]);
+      tiposSet.add(tipo);
+    }
+    const tipos = Array.from(tiposSet);
+  if(Object.keys(saborTipo).length === 0 || tipos.length === 0){ container.innerHTML=''; return; }
+    // Render tabla
+    let html = `<table class="tabla-sabores"><thead><tr><th>Sabor</th>`;
+    for(const tipo of tipos){ html += `<th>${safe(tipo.charAt(0).toUpperCase()+tipo.slice(1))}</th>`; }
+    html += `</tr></thead><tbody>`;
+    for(const sabor in saborTipo){
+      html += `<tr><td>${safe(sabor)}</td>`;
+      for(const tipo of tipos){
+        html += `<td>${saborTipo[sabor][tipo]||0}</td>`;
+      }
+      html += `</tr>`;
+    }
+    html += `</tbody></table>`;
+    container.innerHTML = html;
 }
 function renderHistorico(data){
   if(!data) return;
   const sumEl = $id('histSummary');
   if(sumEl){
     sumEl.innerHTML = `
-      <div class="metric"><span class="label">Pedidos</span><span class="value">${data.totalPedidos}</span></div>
-      <div class="metric"><span class="label">Importe €</span><span class="value">${Number(data.totalImporte||0).toFixed(2)}</span></div>
-      <div class="metric"><span class="label">Sabores</span><span class="value">${Object.keys(data.sabores||{}).length}</span></div>
-      <div class="metric"><span class="label">Tamaños</span><span class="value">${Object.keys(data.tamanos||{}).length}</span></div>
+      <div class="metrics-row">
+        <div class="metric"><span class="label">Pedidos</span><span class="value">${data.totalPedidos}</span></div>
+        <div class="metric"><span class="label">Importe €</span><span class="value">${Number(data.totalImporte||0).toFixed(2)}</span></div>
+      </div>
     `;
   }
-  renderBarRows($id('histSabores'), data.sabores);
-  renderBarRows($id('histTamanos'), data.tamanos);
+  renderBarRowsByType($id('histSabores'), data.sabores);
+  renderBarRowsByType($id('histTamanos'), data.tamanos);
 }
 async function loadHistorico(force=false){
   ensureHistoricalMonthInput();
@@ -894,8 +916,21 @@ async function loadHistorico(force=false){
   try {
     const data = await fetchHistorico(month);
     HIST_CACHE = { month, data };
-    renderHistorico(data);
-  } catch(e){ console.error('[historico] fetch error', e); const sumEl=$id('histSummary'); if(sumEl) sumEl.innerHTML='<div style="color:#b91c1c;font-size:.7rem;">Error cargando histórico</div>'; }
+    if(data && typeof data === 'object') {
+      renderHistorico(data);
+      // Si no hay pedidos, mostrar métricas con ceros y tabla vacía
+      if((data.totalPedidos === 0 || !data.totalPedidos) && $id('histSabores')) {
+        $id('histSabores').innerHTML = '<div style="opacity:.6;font-size:.7rem;">Sin datos</div>';
+      }
+    } else {
+      const sumEl=$id('histSummary'); if(sumEl) sumEl.innerHTML='<div style="color:#b91c1c;font-size:.7rem;">Error cargando histórico</div>';
+    }
+  } catch(e){
+    console.error('[historico] fetch error', e);
+    const sumEl=$id('histSummary'); if(sumEl) sumEl.innerHTML='<div style="color:#b91c1c;font-size:.7rem;">Error cargando histórico</div>';
+    if($id('histSabores')) $id('histSabores').innerHTML = '';
+    if($id('histTamanos')) $id('histTamanos').innerHTML = '';
+  }
 }
 function ensureHistoricalLoaded(){ loadHistorico(false); }
 // Wiring botones histórico

@@ -46,9 +46,17 @@ router.get('/', async (req,res)=>{
         const sabores = Array.isArray(it.sabores)? it.sabores : [];
         const distrib = Array.isArray(it.sabores_distribucion)? it.sabores_distribucion : p?.fields?.sabores_distribucion;
         if(Array.isArray(distrib)){
-          for(const d of distrib){ if(!saboresMap[d.flavor]) saboresMap[d.flavor]=0; saboresMap[d.flavor]+= Number(d.count)||0; }
+          for(const d of distrib){
+            const key = `${d.flavor} - ${tam}`;
+            if(!saboresMap[key]) saboresMap[key]=0;
+            saboresMap[key]+= Number(d.count)||0;
+          }
         } else {
-          for(const s of sabores){ if(!saboresMap[s]) saboresMap[s]=0; saboresMap[s]+= cant / (sabores.length||1); }
+          for(const s of sabores){
+            const key = `${s} - ${tam}`;
+            if(!saboresMap[key]) saboresMap[key]=0;
+            saboresMap[key]+= cant / (sabores.length||1);
+          }
         }
         totalImporte += Number(it.total)||0;
       }

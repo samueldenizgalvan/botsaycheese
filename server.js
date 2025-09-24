@@ -426,7 +426,8 @@ async function bootstrap(){
   await initHttp();
   startDailyReminderJob();
   // Iniciar limpieza periódica de pedidos caducados
-  const cleanupInterval = Number(process.env.CLEANUP_INTERVAL_MS || 24*60*60*1000);
+  // Intervalo de limpieza: por defecto 1 día (86400000 ms)
+  const cleanupInterval = Number(process.env.CLEANUP_INTERVAL_MS || 86400000);
   try { startCleanupScheduler(cleanupInterval); } catch(e){ console.error('[cleanup] no se pudo iniciar', e); }
   if (!DISABLE_WA) {
     await initWA();

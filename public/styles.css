@@ -1,3 +1,51 @@
+/* Métricas histórico responsive */
+.metrics-row {
+	display: flex;
+	gap: 18px;
+	justify-content: center;
+	align-items: stretch;
+	flex-wrap: wrap;
+	margin-bottom: 12px;
+}
+.metric {
+	background: #fff;
+	border-radius: 12px;
+	box-shadow: 0 2px 8px -2px rgba(0,0,0,.07);
+	padding: 12px 18px;
+	min-width: 120px;
+	text-align: center;
+	margin-bottom: 8px;
+}
+.metric .label {
+	display: block;
+	font-size: .95rem;
+	color: #475569;
+	margin-bottom: 4px;
+}
+.metric .value {
+	font-size: 1.35rem;
+	font-weight: 700;
+	color: #222e3a;
+}
+@media (max-width: 640px) {
+	.metrics-row {
+		flex-direction: column;
+		gap: 8px;
+		align-items: stretch;
+	}
+	.metric {
+		min-width: 0;
+		width: 100%;
+		padding: 10px 8px;
+		font-size: 1rem;
+	}
+	.metric .label {
+		font-size: .9rem;
+	}
+	.metric .value {
+		font-size: 1.15rem;
+	}
+}
 /* === Layout centrado con bordes laterales === */
 @media (min-width: 800px) {
 	.app-main, .tabs-container {
@@ -22,7 +70,9 @@
 #panel-historico .hist-summary,
 #panel-historico .hist-sabores,
 #panel-historico .hist-tamanos {
+	background: rgba(255,255,255,0.82);
 	color: #222e3a;
+	box-shadow: 0 2px 8px -2px rgba(0,0,0,.07);
 }
 .bar-row .bar-wrap { background:#e5e7eb; }
 .bar-row .bar { background:linear-gradient(90deg,#2563eb,#38bdf8); opacity:0.85; }
@@ -627,7 +677,13 @@ html, body, #app, .main-content, .container, .app-root{
 	 Histórico mensual
 	 ============================= */
 #panel-historico { padding:12px 10px 70px; display:flex; flex-direction:column; gap:14px; }
+/* Fondo personalizado para el histórico */
 #panel-historico {
+	background: url('/public/saycheese-bg.png') center center/contain no-repeat, #fbe3a1 !important;
+	backdrop-filter: blur(0.5px);
+	background-blend-mode: lighten;
+	opacity: 0.92;
+}
 	max-width: 700px;
 	margin: 0 auto;
 	min-height: 400px;

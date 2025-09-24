@@ -21,15 +21,15 @@
   "prices": { "grande": 35.0, "cajitas": 12.0 },
   "messages": {
     "welcome": "¡Hola! 👋 Soy el asistente de *SayCheese By Nestor*.\n\n👉Puedes escribir *menu* en cualquier momento para volver al inicio.\n👉 *atras* Para retroceder o *cancelar* Para cancelar algún proceso ✅.",
-  "menu": "Menú principal 📋\n👉 *1)* Hacer pedido 🛒\n👉 *2)* Cancelar pedido ❌\n👉 *3)* Modificar pedido ✏️\n👉 *4)* Dirección 📍\n👉 *5)* Información ℹ️\n\n(Responde con el número)",
-    "bad_option": "Mmm… no te entendí 🤖. Escribe *pedido* para empezar 🎂 o *menu* para ver opciones 📋.",
+    "menu": "Menú principal 📋\n👉 *1)* Hacer pedido 🛒\n👉 *2)* Cancelar pedido ❌\n👉 *3)* Modificar pedido ✏️\n👉 *4)* Dirección 📍\n👉 *5)* Información ℹ️\n\n⚠️ El próximo 4 y 5 de octubre no venderemos porciones en nuestro local. ¡Disculpen las molestias! Solo se entregarán pedidos.\n\n(Responde con el número)",
+  "bad_option": "Mmm… no te entendí 🤖. Escribe *pedido* para empezar 🎂 o *menu* para ver opciones 📋.",
 
     "ask_telefono": "Indica tu *teléfono* (9 dígitos) 📞:",
     "ask_tamano": "Elige *tamaño* 📏:\n1) *Grande* (10–12 raciones, 1.5 Kg) – *35€*\n2) *Cajitas* (400 g) – *12€*\nResponde *1/2* o escribe *grande/cajitas*.",
     "flavor_list": "Sabores 🤤:\n• Clásica 🍰\n• Lotus 🍪\n• Pistacho 🟢\n• Oreo 🔵\n• Nocilla 🍫\n• Gofio 🌾\n• Mango-Maracuyá 🥭\n• Hippo 🦛\n• Caramelo Salado 🦅\nUsa solo los de la lista mostrada",
     "ask_sabores": "👉 Dime qué *sabores* quieres 🍰.\n\n✅ Puedes elegir uno o varios.\n✅ Solo escribe cuántos quieres de cada sabor.\n\n📌 Ejemplos:\n- 1 clásica 2 oreo 3 mango (sin comas)🥭\n- 1 lotus , 2 oreo , 4 mango(con comas) \n- 2 Oreo 3 Pistacho 1 Lotus \n\nSabores disponibles:\n• Clásica 🍰\n• Lotus 🍪\n• Pistacho 🟢\n• Oreo 🔵\n• Nocilla 🍫\n• Gofio 🌾\n• Mango-Maracuyá 🥭\n• Hippo 🦛\n• Caramelo Salado 🦅\n\n✍️ Escribe la cantidad seguida del nombre del sabor.",
     "porciones_info": "Las porciones (4,5€) son sin reserva de Viernes a Domingo.",
-    "horario_info": "Horario semanal:\nJueves 11:00 / 13:00\nViernes 18:00/20:00\nSábado 11:00/13:30\nDomingo 11:00/13:30",
+  "horario_info": "Horario semanal:\nMiércoles a Domingo solo por la mañana de 11:00 / 13:30\nViernes Solamente por la tarde de 18:00 / 20:30",
 
     "ask_qty_grande": "¿Cuántas *tartas grandes* quieres? (1–20) 🔢",
     "ask_qty_cajitas": "¿Cuántas *cajitas* quieres? (1–50) 📦",
@@ -52,7 +52,7 @@
     "ask_cantidad_entera": "¿Cuántas *tartas grandes* quieres? (1–20) 🔢",
     "ask_cantidad_cajitas": "¿Cuántas *cajitas* quieres? (1–50) 📦",
   "ask_obs": "¿Alguna *observación*? 📝 (opcional; puedes escribirla directamente o poner \"no\")",
-  "pickup_schedule": "Las porciones(4,5€) son sin reserva de Viernes a Domingo\n❗Horario semanal:\nJueves 11:00 / 13:00\nViernes 18:00/20:00\nSábado 11:00/13:30\nDomingo 11:00/13:30",
+  "pickup_schedule": "Las porciones (4,5€) son sin reserva de Viernes a Domingo.\n⚠️ Del 1 al 5 de octubre no venderemos porciones en nuestro local, solo se entregarán pedidos.\n❗Horario semanal:\nMiércoles a Domingo 11:00 / 13:30\nViernes 18:00 / 20:30",
     "ask_delete_phone": "Vale 🗂️. Dime el *número de teléfono* del pedido que quieres cancelar (9 dígitos) 🔢.",
     "delete_not_found": "No encontré pedidos *pendientes* con ese número 🔎 Escribe menu para ver opciones.",
     "delete_found_confirm": "He encontrado {count} pedido(s) *pendiente(s)* para el teléfono *{telefono}* ☎️. ¿Quieres borrarlo(s)? (si/no)",
