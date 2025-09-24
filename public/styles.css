@@ -683,7 +683,6 @@ html, body, #app, .main-content, .container, .app-root{
 	backdrop-filter: blur(0.5px);
 	background-blend-mode: lighten;
 	opacity: 0.92;
-}
 	max-width: 700px;
 	margin: 0 auto;
 	min-height: 400px;
