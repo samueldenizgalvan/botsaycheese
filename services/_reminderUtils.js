@@ -105,7 +105,7 @@ function buildReminderText(cfg, order){
   const total    = order?.total || calcTotal(cfg, tamano, cantidad);
   const brand    = (cfg && (cfg.brand || cfg.displayName)) || 'SayCheese By Nestor';
   // Mensaje sin saludo inicial para evitar parecer bienvenida; solo recordatorio directo
-  return `Recordatorio de tu pedido para *mañana* (${fecha}) en *${brand}*:\n\n• Tamaño: *${tamano}*\n• Cantidad: *${cantidad}*\n• Sabores: *${sabores || '—'}*\n• Total aprox: *${total}€*\n\n📍 C. Abián, 4, 35212 Marpequeña, Las Palmas\n🕒 Recogida 11:00–13:00\n.`;
+  return `Recordatorio de tu pedido para *mañana* (${fecha}) en *${brand}*:\n\n• Tamaño: *${tamano}*\n• Cantidad: *${cantidad}*\n• Sabores: *${sabores || '—'}*\n• Total aprox: *${total}€*\n\n📍 C. Abián, 4, 35212 Marpequeña, Las Palmas.`;
 }
 
 const api = {
