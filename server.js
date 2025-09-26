@@ -406,13 +406,14 @@ module.exports = { app, io, pushEvent };
 
 // --- Daily reminder job at 09:00 Europe/Madrid ---
 function startDailyReminderJob(){
+  // Eliminado: let lastRunDate = null; (ya está declarado arriba)
   let lastRunDate = null;
   setInterval(async () => {
     try {
       const now = new Date();
-      const isNineAm = now.getHours() === 9 && now.getMinutes() === 0;
+      const isEightAm = now.getHours() === 8 && now.getMinutes() === 0;
       const todayKey = now.toISOString().slice(0,10); // YYYY-MM-DD
-      if (isNineAm && lastRunDate !== todayKey) {
+      if (isEightAm && lastRunDate !== todayKey) {
         lastRunDate = todayKey;
         await sendTomorrowReminders('samuel');
         console.log('[reminder] run ok', new Date().toISOString());

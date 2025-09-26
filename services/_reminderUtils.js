@@ -98,14 +98,30 @@ function calcTotal(cfg, tamano, cantidad){
  * @returns {string}
  */
 function buildReminderText(cfg, order){
-  const tamano   = order?.fields?.tamano;
-  const sabores  = (order?.fields?.sabores || []).join(', ');
-  const cantidad = order?.fields?.cantidad || order?.fields?.porciones || order?.fields?.unidades || 1;
   const fecha    = order?.fields?.fecha;
-  const total    = order?.total || calcTotal(cfg, tamano, cantidad);
   const brand    = (cfg && (cfg.brand || cfg.displayName)) || 'SayCheese By Nestor';
-  // Mensaje sin saludo inicial para evitar parecer bienvenida; solo recordatorio directo
-  return `Recordatorio de tu pedido para *mañana* (${fecha}) en *${brand}*:\n\n• Tamaño: *${tamano}*\n• Cantidad: *${cantidad}*\n• Sabores: *${sabores || '—'}*\n• Total aprox: *${total}€*\n\n📍 C. Abián, 4, 35212 Marpequeña, Las Palmas.`;
+  let detalle = '';
+  let total = 0;
+  const items = order?.fields?.items || [];
+  if (Array.isArray(items) && items.length > 0) {
+    for (const item of items) {
+      const tipo = item.tamano === 'grande' ? 'Tarta grande' : 'Cajita';
+      const cantidad = item.cantidad || 1;
+      const sabores = (item.sabores_distribucion && Array.isArray(item.sabores_distribucion))
+        ? item.sabores_distribucion.map(s => `${s.count} ${s.flavor}`).join(', ')
+        : (item.sabores || []).join(', ');
+      detalle += `• ${tipo}: *${cantidad}*\n  Sabores: *${sabores}*\n`;
+      total += Number(item.total) || 0;
+    }
+  } else {
+    // Fallback clásico
+    const tamano   = order?.fields?.tamano;
+    const cantidad = order?.fields?.cantidad || order?.fields?.porciones || order?.fields?.unidades || 1;
+    const sabores  = (order?.fields?.sabores || []).join(', ');
+    detalle = `• Tamaño: *${tamano}*\n• Cantidad: *${cantidad}*\n• Sabores: *${sabores || '—'}*\n`;
+    total = order?.total || calcTotal(cfg, tamano, cantidad);
+  }
+  return `Recordatorio de tu pedido para *mañana* (${fecha}) en *${brand}*:\n\n${detalle}• Total aprox: *${total}€*\n\n📍 C. Abián, 4, 35212 Marpequeña, Las Palmas.`;
 }
 
 const api = {

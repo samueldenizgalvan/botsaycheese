@@ -32,7 +32,7 @@ async function sendTomorrowReminders(tenantId) {
   const today = todayKey();
 
   for (const o of all) {
-  if (o.status !== 'confirmed') continue;
+    if (o.status !== 'confirmed') continue;
     // saltar si ya recordado hoy (idempotencia por fecha)
     const already = o?.reminders?.tomorrowSentAt;
     if (already === today) continue;
