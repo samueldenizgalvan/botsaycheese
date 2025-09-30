@@ -440,11 +440,29 @@ function summarizeItems(conv, cfg, msgs){
 		});
 	}
 	const total = Number(conv.items?.reduce((acc,it)=> acc + (Number(it.total)||0), 0) || conv.total || 0);
-	// Añadir fecha con día si existe en conv.data
-	if(conv.data && conv.data.fecha){
-		const fechaLinea = formatFechaWithDay(conv);
-		if(fechaLinea) lines.push(`Fecha recogida: ${fechaLinea}`);
-	}
+		// Añadir fecha con día y horario si existe en conv.data
+		if(conv.data && conv.data.fecha){
+				const fechaLinea = formatFechaWithDay(conv);
+				if(fechaLinea) lines.push(`Fecha recogida: ${fechaLinea}`);
+				// Calcular horario según el día de la semana
+				const norm = String(conv.data.fecha).replace(/[\/]/g, '-');
+				const [dd, mm] = norm.split('-').map(Number);
+				const dateObj = new Date(new Date().getFullYear(), (mm||1)-1, dd||1);
+				const dow = dateObj.getDay(); // 0=Domingo, 1=Lunes, ...
+				let horario = '';
+				if (dd === 5 && mm === 10) {
+					horario = 'Horario especial: Domingo 5 de Octubre, entregas de 9:00 a 10:30';
+				} else if (dow === 1 || dow === 2) {
+					horario = 'Lunes y martes cerrado';
+				} else if (dow === 5) {
+					horario = 'Viernes: Recogida 18:00–20:30';
+				} else if (dow >= 3 && dow <= 6) {
+					horario = 'Recogida 11:00–13:30';
+				} else if (dow === 0) {
+					horario = 'Domingo: Recogida 11:00–13:30';
+				}
+				if(horario) lines.push(horario);
+		}
 	const totalLine = (msgs?.total_line || `Total: ${total}€`);
 	lines.push(totalLine);
 	return lines.join('\n');

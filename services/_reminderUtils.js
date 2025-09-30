@@ -121,7 +121,27 @@ function buildReminderText(cfg, order){
     detalle = `• Tamaño: *${tamano}*\n• Cantidad: *${cantidad}*\n• Sabores: *${sabores || '—'}*\n`;
     total = order?.total || calcTotal(cfg, tamano, cantidad);
   }
-  return `Recordatorio de tu pedido para *mañana* (${fecha}) en *${brand}*:\n\n${detalle}• Total aprox: *${total}€*\n\n📍 C. Abián, 4, 35212 Marpequeña, Las Palmas.`;
+  // Determinar horario según el día de la semana
+  let horario = '';
+  if (fecha) {
+    // Parsear fecha DD-MM o DD/MM
+    const norm = String(fecha).replace(/[\/]/g, '-');
+    const [dd, mm] = norm.split('-').map(Number);
+    const dateObj = new Date(new Date().getFullYear(), (mm||1)-1, dd||1);
+    const dow = dateObj.getDay(); // 0=Domingo, 1=Lunes, ...
+    if (dd === 5 && mm === 10) {
+      horario = '\nHorario especial: *Domingo 5 de Octubre, entregas de 9:00 a 10:30*';
+    } else if (dow === 1 || dow === 2) {
+      horario = '\n*Lunes y martes cerrado*';
+    } else if (dow === 5) {
+      horario = '\n*Viernes*: Recogida 18:00–20:30';
+    } else if (dow >= 3 && dow <= 6) {
+      horario = '\nRecogida 11:00–13:30';
+    } else if (dow === 0) {
+      horario = '\n*Domingo*: Recogida 11:00–13:30';
+    }
+  }
+  return `Recordatorio de tu pedido para *mañana* (${fecha}) en *${brand}*:\n\n${detalle}• Total aprox: *${total}€*${horario}\n\n📍 C. Abián, 4, 35212 Marpequeña, Las Palmas.`;
 }
 
 const api = {
