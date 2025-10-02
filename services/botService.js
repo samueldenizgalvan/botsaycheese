@@ -1330,33 +1330,57 @@ C. Abián, 4, 35212 Marpequeña, Las Palmas
 	}
 
 	// Cancelación global -> mover a "cancelados" (no borrar)
-	const cancelSet=new Set([...(keywords.cancel||[]),'cancel','cancelar','anular','cancelar pedido'].map(norm));
-		if(cancelSet.has(lower)){
-				try{
-					// Solo guardar en cancelados si hay al menos un ítem real en el pedido
-					const hasItems = Array.isArray(conv?.items) && conv.items.length>0;
-					if(hasItems){
-						const orders=require('./orderStore');
-						await orders.append(tenantId,{
-							status:'canceled',
-							customer:{ name:conv.data?.nombre||'', phone:conv.data?.telefono||'' },
-							fields:{ ...conv.data, items: conv.items, tamano: (conv.selectedSize?.label||conv.data?.tamano||'') },
-							total: conv.items.reduce((acc,it)=> acc + (Number(it.total)||0), 0)
-						});
-					}
-				}catch{}
-				// Clear any temporary delete list from session
-				try{
-					const sess = await convStore.readConv(tenantId, phone) || {};
-					if(Object.prototype.hasOwnProperty.call(sess, 'del_list')){
-						delete sess.del_list;
-						await convStore.writeConv(tenantId, phone, sess);
-					}
-				} catch{}
-				// Reset runtime state to idle
-				try{ const wasWelcomed=conv.welcomed, lastW=conv.lastWelcomeAt; runtime.setState(tenantId, phone,{stage:'none',data:{},welcomed:wasWelcomed,lastWelcomeAt:lastW}); } catch{}
-				return msgs.canceled || 'Pedido cancelado y movido a la lista de cancelados.';
-		}
+const cancelSet = new Set([...(keywords.cancel || []), 'cancel', 'cancelar', 'anular', 'cancelar pedido'].map(norm));
+if (cancelSet.has(lower)) {
+
+  // Guardar cancelado solo si hay datos críticos
+  try {
+    const hasItems = Array.isArray(conv?.items) && conv.items.length > 0;
+    const tel = String(conv?.data?.telefono || '').replace(/\D/g, '');
+    const hasPhone = tel.length === 9;          // España: 9 dígitos
+    const hasDate  = Boolean(conv?.data?.fecha);
+
+    if (hasItems && hasPhone && hasDate) {
+      const orders = require('./orderStore');
+      await orders.append(tenantId, {
+        status: 'canceled',
+        customer: { name: conv?.data?.nombre || '', phone: tel },
+        fields: {
+          ...conv?.data,
+          telefono: tel,
+          items: conv.items,
+          tamano: (conv?.selectedSize?.label || conv?.data?.tamano || '')
+        },
+        total: conv.items.reduce((acc, it) => acc + (Number(it.total) || 0), 0)
+      });
+      console.log('[CANCEL][SAVED]', { tel, fecha: conv?.data?.fecha, items: conv.items.length });
+    } else {
+      console.log('[CANCEL][SKIP] faltan datos críticos', {
+        hasItems, hasPhone, hasDate, tel, stage: conv?.stage
+      });
+    }
+  } catch (e) {
+    console.error('[CANCEL][ERROR]', e?.message || e);
+  }
+
+  // Clear any temporary delete list from session
+  try {
+    const sess = await convStore.readConv(tenantId, phone) || {};
+    if (Object.prototype.hasOwnProperty.call(sess, 'del_list')) {
+      delete sess.del_list;
+      await convStore.writeConv(tenantId, phone, sess);
+    }
+  } catch {}
+
+  // Reset runtime state to idle
+  try {
+    const wasWelcomed = conv.welcomed, lastW = conv.lastWelcomeAt;
+    runtime.setState(tenantId, phone, { stage: 'none', data: {}, welcomed: wasWelcomed, lastWelcomeAt: lastW });
+  } catch {}
+
+  return msgs.canceled || 'Pedido cancelado y movido a la lista de cancelados.';
+}
+
 
 	// Stage none / idle
 if(conv.stage==='none'){
