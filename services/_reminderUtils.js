@@ -129,9 +129,7 @@ function buildReminderText(cfg, order){
     const [dd, mm] = norm.split('-').map(Number);
     const dateObj = new Date(new Date().getFullYear(), (mm||1)-1, dd||1);
     const dow = dateObj.getDay(); // 0=Domingo, 1=Lunes, ...
-    if (dd === 5 && mm === 10) {
-      horario = '\nHorario especial: *Domingo 5 de Octubre, entregas de 9:00 a 10:30*';
-    } else if (dow === 1 || dow === 2) {
+    if (dow === 1 || dow === 2) {
       horario = '\n*Lunes y martes cerrado*';
     } else if (dow === 5) {
       horario = '\n*Viernes*: Recogida 18:00–20:30';

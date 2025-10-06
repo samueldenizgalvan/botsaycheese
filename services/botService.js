@@ -450,9 +450,7 @@ function summarizeItems(conv, cfg, msgs){
 				const dateObj = new Date(new Date().getFullYear(), (mm||1)-1, dd||1);
 				const dow = dateObj.getDay(); // 0=Domingo, 1=Lunes, ...
 				let horario = '';
-				if (dd === 5 && mm === 10) {
-					horario = 'Horario especial: Domingo 5 de Octubre, entregas de 9:00 a 10:30';
-				} else if (dow === 1 || dow === 2) {
+				if (dow === 1 || dow === 2) {
 					horario = 'Lunes y martes cerrado';
 				} else if (dow === 5) {
 					horario = 'Viernes: Recogida 18:00–20:30';
@@ -756,60 +754,102 @@ async function manejarMensajeTenant(a, b, c){
 
 		// Manual: "cancelar <telefono>" / "anular <telefono>" / "borrar <telefono>"
 		const manualCancel = /^\s*(cancel(?:ar)?|anular|borrar)\s+([^]+)$/i.exec(text || '');
-			if(manualCancel){
-				// Si el usuario escribe exactamente 'cancelar pedido' (sin más dígitos) queremos tratarlo como cancelación global, no como cancelación por teléfono.
-				const rawCandidate = (manualCancel[2]||'').trim().toLowerCase();
-				if(rawCandidate === 'pedido'){
-					// Dejamos que más abajo lo maneje el bloque de cancelSet (lower ya contiene la frase completa normalizada)
-				} else {
-			const raw = manualCancel[2] || '';
-			const digits = raw.replace(/\D/g,'');
-			const tel9 = digits.slice(-9);
-			if(tel9.length!==9){
-				const txt = msgs.invalid_phone || 'Formato de teléfono inválido. Deben ser 9 dígitos.';
-				{
-					const preview = String(txt).slice(0,80);
-					console.log('[SEND]', phone, preview);
-					await sendSafe(client, msg.from, String(txt));
-				}
-				return null;
-			}
-			const matches = await findPendingByPhone(tenantId, tel9);
-			const confirmedMatches = (matches||[]).filter(m=> String(m.status||'').toLowerCase()==='confirmed');
-			if(!confirmedMatches || confirmedMatches.length===0){
-				const txt = msgs.only_cancel_confirmed || 'Solo puedes cancelar pedidos confirmados. Si tu pedido está pendiente, espera confirmación.';
-				{
-					const preview = String(txt).slice(0,80);
-					console.log('[SEND]', phone, preview);
-					await sendSafe(client, msg.from, String(txt));
-				}
-				// Volver a menú
+		if (manualCancel) {
+			const rawCandidate = (manualCancel[2] || '').trim().toLowerCase();
+			// Caso especial: "cancelar pedido"
+			if (rawCandidate === 'pedido') {
+				// Si está idle, comportarse como opción 2 del menú (delete_by_phone)
+				const isIdleNow = (!conv.stage || conv.stage==='none');
+				if (isIdleNow) {
+					try { await convStore.writeConv(tenantId, phone, {}); } catch {}
+					runtime.setState(tenantId, phone, { stage:'delete_by_phone', data:{}, flow:'delete_order', welcomed:conv.welcomed, lastWelcomeAt:conv.lastWelcomeAt });
+					const senderTel = phone.replace(/\D/g,'').slice(-9);
+					const matches = await findPendingByPhone(tenantId, senderTel);
+					const candidates = (matches||[]).filter(m=> String(m.status||'').toLowerCase()!=='canceled');
+					if(!candidates || candidates.length===0){
+						const txt = msgs.delete_none || 'No encontré pedidos pendientes o confirmados para ese número.';
+						{
+							const preview = String(txt).slice(0,80);
+							console.log('[SEND]', phone, preview);
+							await sendSafe(client, msg.from, String(txt));
+						}
 						try { await convStore.writeConv(tenantId, phone, {}); } catch{}
-						try { runtime.setState(tenantId, phone, { stage:'none', data:{}, flow:'none', welcomed: menuState && menuState.welcomed, lastWelcomeAt: menuState && menuState.lastWelcomeAt }); } catch{}
-				await sendWelcomeAndMenu(client, msg.from, cfg);
-				return null;
+						try { runtime.setState(tenantId, phone, { stage:'none', data:{}, flow:'none', welcomed:conv.welcomed, lastWelcomeAt:conv.lastWelcomeAt }); } catch{}
+						await sendWelcomeAndMenu(client, msg.from, cfg);
+						return null;
 					}
+					// Persist list and ask confirmation (like option 2)
+					try {
+						const sess = await convStore.readConv(tenantId, phone) || {};
+						sess.del_list = candidates.map(m=> String(m.id));
+						sess.tel = senderTel;
+						sess.state = { flow:'delete_order', stage:'delete_by_phone' };
+						sess.lastAsk = { stage:'delete_by_phone', ts: Date.now() };
+						await convStore.writeConv(tenantId, phone, sess);
+					} catch{}
+					const headerBase = (msgs.delete_found || 'He encontrado {count} pedido(s) para el teléfono {telefono}:')
+						.replace('{count}', String(candidates.length))
+						.replace('{telefono}', senderTel);
+					const blocks = candidates.map(o=>`Pedido ID ${o.id}\n${summarizeStoredOrder(o)}`);
+					const tail = msgs.delete_confirm || '¿Este es tu pedido? ¿Seguro que quieres cancelar y empezar uno nuevo? (sí/no)';
+					const out = [headerBase, ...blocks, tail].join('\n\n');
+					{
+						const preview = String(out).slice(0,80);
+						console.log('[SEND]', phone, preview);
+						await sendSafe(client, msg.from, out);
+					}
+					return null;
+				// Si no está idle, no manejar aquí: dejar que más abajo lo trate cancelSet (cancelación del borrador)
+			} else {
+				// Cancelación por teléfono: validar y preguntar confirmación (solo para confirmados)
+				const raw = manualCancel[2] || '';
+				const digits = raw.replace(/\D/g,'');
+				const tel9 = digits.slice(-9);
+				if (tel9.length!==9) {
+					const txt = msgs.invalid_phone || 'Formato de teléfono inválido. Deben ser 9 dígitos.';
+					{
+						const preview = String(txt).slice(0,80);
+						console.log('[SEND]', phone, preview);
+						await sendSafe(client, msg.from, String(txt));
+					}
+					return null;
+				}
+				const matches = await findPendingByPhone(tenantId, tel9);
+				const confirmedMatches = (matches||[]).filter(m=> String(m.status||'').toLowerCase()==='confirmed');
+				if (!confirmedMatches || confirmedMatches.length===0) {
+					const txt = msgs.only_cancel_confirmed || 'Solo puedes cancelar pedidos confirmados. Si tu pedido está pendiente, espera confirmación.';
+					{
+						const preview = String(txt).slice(0,80);
+						console.log('[SEND]', phone, preview);
+						await sendSafe(client, msg.from, String(txt));
+					}
+					try { await convStore.writeConv(tenantId, phone, {}); } catch{}
+					try { runtime.setState(tenantId, phone, { stage:'none', data:{}, flow:'none', welcomed: menuState && menuState.welcomed, lastWelcomeAt: menuState && menuState.lastWelcomeAt }); } catch{}
+					await sendWelcomeAndMenu(client, msg.from, cfg);
+					return null;
+				}
+				try {
+					const sess = await convStore.readConv(tenantId, phone) || {};
+					sess.del_list = confirmedMatches.map(m=> String(m.id));
+					sess.tel = tel9;
+					sess.state = { flow:'delete_order', stage:'delete_by_phone' };
+					sess.lastAsk = { stage:'delete_by_phone', ts: Date.now() };
+					await convStore.writeConv(tenantId, phone, sess);
+				} catch{}
+				const headerBase = (msgs.delete_found || 'He encontrado {count} pedido(s) para el teléfono {telefono}:')
+					.replace('{count}', String(confirmedMatches.length))
+					.replace('{telefono}', tel9);
+				const blocks = confirmedMatches.map(o=>`Pedido ID ${o.id}\n${summarizeStoredOrder(o)}`);
+				const tail = msgs.delete_confirm || '¿Este es tu pedido? ¿Seguro que quieres cancelar y empezar uno nuevo? (sí/no)';
+				const out = [headerBase, ...blocks, tail].join('\n\n');
+				{
+					const preview = String(out).slice(0,80);
+					console.log('[SEND]', phone, preview);
+					await sendSafe(client, msg.from, out);
+				}
+				return null;
 			}
-			try {
-				const sess = await convStore.readConv(tenantId, phone) || {};
-				sess.del_list = confirmedMatches.map(m=> String(m.id));
-				sess.tel = tel9;
-				sess.state = { flow:'delete_order', stage:'delete_by_phone' };
-				sess.lastAsk = { stage:'delete_by_phone', ts: Date.now() };
-				await convStore.writeConv(tenantId, phone, sess);
-			} catch{}
-			const headerBase = (msgs.delete_found || 'He encontrado {count} pedido(s) para el teléfono {telefono}:')
-				.replace('{count}', String(confirmedMatches.length))
-				.replace('{telefono}', tel9);
-			const blocks = confirmedMatches.map(o=>`Pedido ID ${o.id}\n${summarizeStoredOrder(o)}`);
-			const tail = msgs.delete_confirm || '¿Este es tu pedido? ¿Seguro que quieres cancelar y empezar uno nuevo? (sí/no)';
-			const out = [headerBase, ...blocks, tail].join('\n\n');
-			{
-				const preview = String(out).slice(0,80);
-				console.log('[SEND]', phone, preview);
-				await sendSafe(client, msg.from, out);
-			}
-			return null;
+		}
 		}
 
 		// Global interrupt: menu or greeting keywords -> show menu
@@ -1040,7 +1080,8 @@ async function manejarMensajeTenant(a, b, c){
 			return null;
 		}
 
-						if(isIdle && ['2','borrar','eliminar'].includes(lower)){
+						// Also accept the phrase "cancelar pedido" when idle as a synonym of option 2
+						if(isIdle && ['2','borrar','eliminar','cancelar pedido'].includes(lower)){
 								// Auto-uso del número del remitente para buscar y pedir confirmación
 								try { await convStore.writeConv(tenantId, phone, {}); } catch {}
 								runtime.setState(tenantId, phone, { stage:'delete_by_phone', data:{}, flow:'delete_order', welcomed:conv.welcomed, lastWelcomeAt:conv.lastWelcomeAt });
@@ -1148,11 +1189,9 @@ async function manejarMensajeTenant(a, b, c){
 • Lotus 🍪
 • Pistacho 🟢
 • Oreo 🔵
-• Nocilla 🍫
 • Gofio 🌾
 • Mango-Maracuyá 🥭
 • Hippo 🦛
-• Caramelo Salado 🦅
 
 ✅ Cómo pedir:
 
@@ -1184,7 +1223,7 @@ C. Abián, 4, 35212 Marpequeña, Las Palmas
 • Lactosa ✅
 • Gluten ⚠️
 • Azúcar ⚠️
-• Todo pasteurizado ✅`);
+• Todo pasteurizado ✅ \n\nEscribe menu para volver al menú. 🍰 🍰  `);
 			{
 				const preview = String(infoBlock).slice(0, 80);
 				console.log('[SEND]', phone, preview);
@@ -1469,17 +1508,20 @@ if(conv.stage==='none'){
 			const trimmed = text.trim();
 			const alias = (cfg.options && cfg.options.tamano_alias) || {};
 			let key = alias[trimmed];
-			if(!key){
-				const t = trimmed.toLowerCase();
-				if(/grande|tarta/.test(t)) key = 'grande';
-				else if(/cajita|cajitas/.test(t)) key = 'cajitas';
-				else if(/^[1-9]\d*$/.test(t)){
-					// numeric selection by index in catalog sizes (1-based)
-					const idx = Number(t)-1;
-					const sz = Array.isArray(cfg.catalog?.sizes)? cfg.catalog.sizes[idx] : null;
-					if(sz && sz.id) key = sz.id;
+				if(!key){
+					const t = trimmed.toLowerCase();
+					if(/grande|tarta/.test(t)) key = 'grande';
+					else if(/cajita|cajitas/.test(t)) key = 'cajitas';
+					else {
+						// Accept a leading numeric token even if followed by words, e.g., "2 oreo"
+						const m = /^\s*([1-9]\d*)\b/.exec(t);
+						if(m){
+							const idx = Number(m[1]) - 1; // 1-based to 0-based
+							const sz = Array.isArray(cfg.catalog?.sizes) ? cfg.catalog.sizes[idx] : null;
+							if (sz && sz.id) key = sz.id;
+						}
+					}
 				}
-			}
 			if(!key){
 				// anti-duplicate ask guard: throttle same prompt briefly
 										if(!(lastAsk && lastAsk.stage==='ask_tamano' && (Date.now() - (lastAsk.ts||0) < 2000))){
