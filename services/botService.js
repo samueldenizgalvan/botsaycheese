@@ -302,9 +302,14 @@ function canonicalFlavorMap(config){
 		if(key.includes('mango') && !map.has('mango')){
 			map.set('mango', f);
 		}
-		// Alias: si el sabor contiene "caramelo", aceptar también "caramelo"
-		if(key.includes('caramelo') && !map.has('caramelo')){
-			map.set('caramelo', f);
+		// Alias específicos para "Queso Canario Premium"
+		// Acepta entradas abreviadas como "queso", "premium" o "queso canario"
+		if(/queso/.test(key) && /premium/.test(key)){
+			if(!map.has('queso')) map.set('queso', f);
+			if(!map.has('premium')) map.set('premium', f);
+			if(!map.has('queso canario')) map.set('queso canario', f);
+			if(!map.has('queso premium')) map.set('queso premium', f);
+			if(!map.has('canario premium')) map.set('canario premium', f);
 		}
 	}
 	return map;
@@ -402,13 +407,42 @@ function buildOrderItem(conv, cfg){
 	const tamanoId = (conv.selectedSize?.id || conv.data?.tamano || '').toLowerCase();
 	const cantidad = Number(conv.data?.cantidad || 0);
 	const sizeRec = Array.isArray(cfg.catalog?.sizes)? cfg.catalog.sizes.find(s=> String(s.id).toLowerCase()===tamanoId) : null;
-	const precioUnit = Number((sizeRec && sizeRec.price != null) ? sizeRec.price : (precioMap[tamanoId])) || 0;
+
+	// Helper: detect if the selected flavors include the premium cheese flavor
+	const hasOnlyPremiumCheese = (()=>{
+		const PREMIUM = 'Queso Canario Premium';
+		const dist = Array.isArray(conv.data?.sabores_distribucion) ? conv.data.sabores_distribucion : null;
+		if (Array.isArray(dist) && dist.length>0){
+			return dist.every(d=> String(d?.flavor||'').trim()===PREMIUM);
+		}
+		const list = Array.isArray(conv.data?.sabores) ? conv.data.sabores : [];
+		return list.length>0 && list.every(s=> String(s).trim()===PREMIUM);
+	})();
+
+	// Base price from size or legacy precios map
+	let precioUnit = Number((sizeRec && sizeRec.price != null) ? sizeRec.price : (precioMap[tamanoId])) || 0;
+
+	// Override price ONLY when premium cheese flavor is selected
+	if (hasOnlyPremiumCheese) {
+		if (tamanoId === 'grande' || tamanoId.startsWith('grande')) precioUnit = 40;
+		else if (tamanoId === 'cajitas' || tamanoId.startsWith('cajitas')) precioUnit = 13;
+	}
+
 	const subtotal = precioUnit * (cantidad || 0);
 	const baseSabores = Array.isArray(conv.data?.sabores) ? conv.data.sabores : [];
 	const distrib = Array.isArray(conv.data?.sabores_distribucion) ? conv.data.sabores_distribucion.map(d=>({ count:Number(d.count)||0, flavor:d.flavor })) : null;
+	// Adjust label to reflect final unit price if override applied
+	let finalLabel = conv.selectedSize?.label || tamanoId;
+	if (hasOnlyPremiumCheese){
+		const priceTag = `(${precioUnit}€)`;
+		if (typeof finalLabel==='string'){
+			if (/\(.*?\)/.test(finalLabel)) finalLabel = finalLabel.replace(/\(.*?\)/, priceTag);
+			else finalLabel = `${finalLabel} ${priceTag}`.trim();
+		}
+	}
 	return {
 		tamano: tamanoId, // corregido (antes 'amano')
-		label: conv.selectedSize?.label || tamanoId,
+		label: finalLabel,
 		type: conv.selectedSize?.type || 'entera',
 		cantidad,
 		sabores: baseSabores,
@@ -1141,7 +1175,7 @@ async function manejarMensajeTenant(a, b, c){
 		if(isIdle){
 			const rawMsg = (msg.body||'').toLowerCase();
 			if(/\bsabor(es)?\b/.test(rawMsg)){
-				const saboresTxt = 'Sabores disponibles:\n* Clásica 🍰\n* Lotus 🍪\n* Pistacho 🟢\n* Oreo 🔵\n* Nocilla 🍫\n* Gofio 🌾\n* Mango-Maracuyá 🥭\n* Hippo 🦛\n* Caramelo Salado 🦅\n\nEscribe *menu* para más opciones 📋';
+				const saboresTxt = 'Sabores disponibles:\n* Clásica 🍰\n* Lotus 🍪\n* Pistacho 🟢\n* Oreo 🔵\n* Gofio 🌾\n* Mango-Maracuyá 🥭\n* Hippo 🦛\n* Queso Canario Premium 🥇 ( EDICION LIMITADA)  40€ tarta / 13€ cajita\n\nEscribe *menu* para más opciones 📋';
 				try {
 					const preview = saboresTxt.slice(0,80); console.log('[SEND]', phone, preview);
 					await sendSafe(client, msg.from, saboresTxt);
@@ -1192,6 +1226,7 @@ async function manejarMensajeTenant(a, b, c){
 • Gofio 🌾
 • Mango-Maracuyá 🥭
 • Hippo 🦛
+• Queso Canario Premium 🥇 ( EDICION LIMITADA)  40€ tarta / 13€ cajita
 
 ✅ Cómo pedir:
 

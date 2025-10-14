@@ -12,13 +12,15 @@
     "where": ["donde estamos", "dirección", "direccion", "ubicacion", "ubicación", "mapa"]
   },
   "catalog": {
-  "flavors": ["Clásica", "Lotus", "Pistacho", "Oreo", "Gofio", "Mango-Maracuyá", "Hippo"],
+  "flavors": ["Clásica", "Lotus", "Pistacho", "Oreo", "Gofio", "Mango-Maracuyá", "Hippo", "Queso Canario Premium"],
     "sizes": [
-      { "id": "grande",  "label": "Grande (35€)",  "type": "entera",  "price": 35 },
-      { "id": "cajitas", "label": "Cajitas (12€)", "type": "cajitas", "price": 12 }
+  { "id": "grande",  "label": "Grande (35€)",  "type": "entera",  "price": 35 },
+  { "id": "cajitas", "label": "Cajitas (12€)", "type": "cajitas", "price": 12 },
+  { "id": "grande_queso_curado", "label": "Grande Queso Canario Premium (40€)", "type": "entera", "price": 40 },
+  { "id": "cajitas_queso_curado", "label": "Cajitas Queso Canario Premium (13€)", "type": "cajitas", "price": 13 }
     ]
   },
-  "prices": { "grande": 35.0, "cajitas": 12.0 },
+  "prices": { "grande": 35.0, "cajitas": 12.0, "grande_queso_curado": 40.0, "cajitas_queso_curado": 13.0 },
   "messages": {
     "welcome": "¡Hola! 👋 Soy el asistente de *SayCheese By Nestor*.\n\n👉Puedes escribir *menu* en cualquier momento para volver al inicio.\n👉 *atras* Para retroceder o *cancelar* Para cancelar algún proceso ✅.",
     "menu": "Menú principal 📋\n👉 *1)* Hacer pedido 🛒\n👉 *2)* Cancelar pedido ❌\n👉 *3)* Modificar pedido ✏️\n👉 *4)* Dirección 📍\n👉 *5)* Información ℹ️\n \n(Responde con el número)",
@@ -26,8 +28,8 @@
 
     "ask_telefono": "Indica tu *teléfono* (9 dígitos) 📞:",
     "ask_tamano": "Elige *tamaño* 📏:\n1) *Grande* (10–12 raciones, 1.5 Kg) – *35€*\n2) *Cajitas* (400 g) – *12€*\nResponde *1/2* o escribe *grande/cajitas*.",
-  "flavor_list": "Sabores 🤤:\n• Clásica 🍰\n• Lotus 🍪\n• Pistacho 🟢\n• Oreo 🔵\n• Gofio 🌾\n• Mango-Maracuyá 🥭\n• Hippo 🦛\nUsa solo los de la lista mostrada",
-  "ask_sabores": "👉 Dime qué *sabores* quieres 🍰.\n\n✅ Puedes elegir uno o varios.\n✅ Solo escribe cuántos quieres de cada sabor.\n\n📌 Ejemplos:\n- 1 clásica 2 oreo 3 mango (sin comas)🥭\n- 1 lotus , 2 oreo , 4 mango(con comas) \n- 2 Oreo 3 Pistacho 1 Lotus \n\nSabores disponibles:\n• Clásica 🍰\n• Lotus 🍪\n• Pistacho 🟢\n• Oreo 🔵\n• Gofio 🌾\n• Mango-Maracuyá 🥭\n• Hippo 🦛\n\n✍️ Escribe la cantidad seguida del nombre del sabor.",
+  "flavor_list": "Sabores 🤤:\n• Clásica 🍰\n• Lotus 🍪\n• Pistacho 🟢\n• Oreo 🔵\n• Gofio 🌾\n• Mango-Maracuyá 🥭\n• Hippo 🦛\n• Queso Canario Premium 🥇 ( EDICION LIMITADA)  40€ tarta / 13€ cajita\nUsa solo los de la lista mostrada",
+  "ask_sabores": "👉 Dime qué *sabores* quieres 🍰.\n\n✅ Puedes elegir uno o varios.\n✅ Solo escribe cuántos quieres de cada sabor.\n\n📌 Ejemplos:\n- 1 clásica 2 oreo 3 mango (sin comas)🥭\n- 1 lotus , 2 oreo , 4 mango(con comas) \n- 2 Oreo 3 Pistacho 1 Lotus \n\nSabores disponibles:\n• Clásica 🍰\n• Lotus 🍪\n• Pistacho 🟢\n• Oreo 🔵\n• Gofio 🌾\n• Mango-Maracuyá 🥭\n• Hippo 🦛 \n• Queso Canario Premium 🥇  EDICION LIMITADA)  40€ tarta / 13€ cajita\n\n✍️ Escribe la cantidad seguida del nombre del sabor.",
     "porciones_info": "Las porciones (4,5€) son sin reserva de Viernes a Domingo.",
   "horario_info": "Horario semanal:\nMiércoles a Domingo solo por la mañana de 11:00 / 13:30\nViernes Solamente por la tarde de 18:00 / 20:30",
 
@@ -65,8 +67,8 @@
   "options": {
     "tamano": ["grande", "cajitas"],
     "tamano_alias": { "1": "grande", "2": "cajitas", "tarta grande": "grande" },
-  "sabores": ["Clásica", "Lotus", "Pistacho", "Oreo", "Gofio", "Mango-Maracuyá", "Hippo"],
-    "precios": { "grande": 35, "cajitas": 12 }
+  "sabores": ["Clásica", "Lotus", "Pistacho", "Oreo", "Gofio", "Mango-Maracuyá", "Hippo", "Queso Canario Premium"],
+    "precios": { "grande": 35, "cajitas": 12, "grande_queso_curado": 40, "cajitas_queso_curado": 13 }
   },
   "flow": [
     {
@@ -77,7 +79,7 @@
         {
           "ask": "ask_sabores",
           "save": "sabores",
-          "validate": { "multiOf": ["Clásica", "Lotus", "Pistacho", "Oreo", "Gofio", "Mango-Maracuyá", "Hippo"] }
+          "validate": { "multiOf": ["Clásica", "Lotus", "Pistacho", "Oreo", "Gofio", "Mango-Maracuyá", "Hippo", "Queso Canario Premium"] }
         },
         { "when": "tamano == grande",  "ask": "ask_qty_grande",  "save": "cantidad", "validate": { "numRange": [1, 20] } },
         { "when": "tamano == cajitas", "ask": "ask_qty_cajitas", "save": "cantidad", "validate": { "numRange": [1, 100] } },
