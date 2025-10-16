@@ -171,6 +171,42 @@ function parseDDMMYYYY(s){
 	if(d.getFullYear()!==yyyy || (d.getMonth()+1)!==mm || d.getDate()!==dd) return null;
 	return d;
 }
+// Parse natural language Spanish dates like "28 de octubre", "28 octubre", "28 oct" (optional year), returning Date or null
+function parseNaturalEsDate(s){
+	try{
+		if(!s) return null;
+		const text = String(s).trim().toLowerCase()
+		  .replace(/\s+/g,' ')
+		  .replace(/[.,]/g,'')
+		  .replace(/ de /g,' ');
+		// Map months and common abbreviations
+		const months = {
+			'enero':1,'ene':1,
+			'febrero':2,'feb':2,
+			'marzo':3,'mar':3,
+			'abril':4,'abr':4,
+			'mayo':5,'may':5,
+			'junio':6,'jun':6,
+			'julio':7,'jul':7,
+			'agosto':8,'ago':8,
+			'septiembre':9,'setiembre':9,'sept':9,'set':9,'sep':9,
+			'octubre':10,'oct':10,
+			'noviembre':11,'nov':11,
+			'diciembre':12,'dic':12
+		};
+		const re = /^(\d{1,2})\s+([a-záéíóú]+)(?:\s+(\d{4}))?$/i;
+		const m = re.exec(text);
+		if(!m) return null;
+		const dd = Number(m[1]);
+		const monKey = m[2].normalize('NFD').replace(/\p{Diacritic}/gu,'');
+		const mm = months[monKey];
+		if(!mm) return null;
+		const yyyy = m[3] ? Number(m[3]) : (new Date()).getFullYear();
+		const d = new Date(yyyy, mm-1, dd, 0,0,0,0);
+		if(d.getFullYear()!==yyyy || (d.getMonth()+1)!==mm || d.getDate()!==dd) return null;
+		return d;
+	}catch{ return null; }
+}
 function validateDateMin3d(text){
 	const d = parseDDMMYYYY(text);
 	if(!d) return false;
@@ -220,55 +256,56 @@ function getAllowedSizes(cfg){
 	return Array.isArray(sizesArr) ? sizesArr.filter(s => String(s.type||'').toLowerCase() !== 'porciones') : [];
 }
 
-function buildAskDatePrompt(){
-	const today = new Date(); today.setHours(0,0,0,0);
-	const min = new Date(today); min.setDate(min.getDate()+3);
-	let max = new Date(min); max.setMonth(max.getMonth()+3);
-	// Clamp to end of current year if it crosses year boundary (año fijo actual)
-	if(max.getFullYear() > today.getFullYear()){
-		max = new Date(today.getFullYear(), 11, 31);
-	}
-	const pad=n=>String(n).padStart(2,'0');
-	const minStr = `${pad(min.getDate())}-${pad(min.getMonth()+1)}`;
-	const maxStr = `${pad(max.getDate())}-${pad(max.getMonth()+1)}`;
-	return `Indica fecha (DD-MM o DD/MM). Mínimo 3 días (>= ${minStr}) y máximo 3 meses (<= ${maxStr}). No entregamos lunes ni martes.`;
-}
+function buildOrderItem(conv, cfg){
+	const precioMap = (cfg.options && cfg.options.precios) || {};
+	const tamanoId = (conv.selectedSize?.id || conv.data?.tamano || '').toLowerCase();
+	const cantidad = Number(conv.data?.cantidad || 0);
+	const sizeRec = Array.isArray(cfg.catalog?.sizes)? cfg.catalog.sizes.find(s=> String(s.id).toLowerCase()===tamanoId) : null;
 
-function validateFlavorList(items, allowed){
-	if(!allowed || !allowed.length) return { ok:true, invalid: [] };
-	const canon = new Set(allowed.map(f=>f.toLowerCase()));
-	const invalid = items.filter(f=> !canon.has(f.toLowerCase()));
-	return { ok: invalid.length===0, invalid };
-}
+	// Prices
+	const basePrice = Number((sizeRec && sizeRec.price != null) ? sizeRec.price : (precioMap[tamanoId])) || 0;
+	const isGrande = (tamanoId === 'grande' || tamanoId.startsWith('grande'));
+	const isCajitas = (tamanoId === 'cajitas' || tamanoId.startsWith('cajitas'));
+	const premiumUnit = isGrande ? 40 : (isCajitas ? 13 : basePrice);
 
-// --- Delete by phone helper ---
-async function deleteByPhone(ctx, cfg, store, send){
-	try{
-		const tel = (ctx?.values?.telefono_del || '').toString();
-		const list = await store.findPendingByPhone(ctx.tenantId, tel);
-		if(!Array.isArray(list) || list.length===0){
-			const msg = (cfg?.messages?.delete_none) || 'No encontré pedidos pendientes con ese número.';
-			return send(msg);
+	const PREMIUM = 'Queso Canario Premium';
+	const distribRaw = Array.isArray(conv.data?.sabores_distribucion) ? conv.data.sabores_distribucion : null;
+	const distrib = Array.isArray(distribRaw) ? distribRaw.map(d=>({ count:Number(d.count)||0, flavor: String(d.flavor||'') })) : null;
+	const list = Array.isArray(conv.data?.sabores) ? conv.data.sabores.map(s=>String(s)) : [];
+
+	// Compute subtotal per-flavor (premium at 40/13, others at base)
+	let subtotal = 0;
+	if (Array.isArray(distrib) && distrib.length){
+		for(const d of distrib){
+			const unit = (d.flavor === PREMIUM) ? premiumUnit : basePrice;
+			subtotal += unit * (Number(d.count)||0);
 		}
-		// Persist temp state for confirmation y marca estado activo
-		await convStore.writeConv(ctx.tenantId, ctx.phone, {
-			...(await convStore.readConv(ctx.tenantId, ctx.phone) || {}),
-			del_list: list.map(p=>String(p.id)),
-			tel,
-			state: { flow: 'delete_order', stage: 'delete_by_phone' },
-			lastAsk: { stage: 'delete_by_phone', ts: Date.now() }
-		});
-		const base = (cfg?.messages?.delete_found) || 'He encontrado {count} pedido(s) pendiente(s) para el teléfono {telefono}:';
-		const header = base.replace('{count}', String(list.length)).replace('{telefono}', tel);
-		const items = list.map(o=>`- ID ${o.id}`).join('\n');
-		const tail = '\n¿Quieres cancelarlo(s)? (sí/no)';
-		return send([header, items, tail].filter(Boolean).join('\n'));
-	} catch(e){
-		return send('Ocurrió un problema al buscar ese número. Intenta de nuevo.');
+	} else if (Array.isArray(list) && list.length){
+		for(const s of list){
+			const unit = (s === PREMIUM) ? premiumUnit : basePrice;
+			subtotal += unit;
+		}
+	} else {
+		subtotal = basePrice * (cantidad || 0);
 	}
-}
 
-// Greet control: only once per 24h unless user asks (menu/hola)
+	// Do not embed dynamic price in label to avoid confusion with mixed pricing
+	const finalLabel = conv.selectedSize?.label || tamanoId;
+	const baseSabores = Array.isArray(conv.data?.sabores) ? conv.data.sabores : [];
+
+	return {
+		tamano: tamanoId,
+		label: finalLabel,
+		type: conv.selectedSize?.type || 'entera',
+		cantidad,
+		sabores: baseSabores,
+		sabores_distribucion: distrib || undefined,
+		fecha: conv.data?.fecha || '',
+		observacion: conv.data?.observacion || '',
+		precioUnit: basePrice,
+		total: subtotal
+	};
+}
 function shouldGreet(session){
 	try{
 		if(!session || !session.greetedAt) return true;
@@ -401,58 +438,7 @@ function buildSizeQuestion(cfg){
 	return 'Elige tamaño:' + (sizeList? ('\n'+sizeList):'');
 }
 
-// Build order item for the current product using config prices
-function buildOrderItem(conv, cfg){
-	const precioMap = (cfg.options && cfg.options.precios) || {};
-	const tamanoId = (conv.selectedSize?.id || conv.data?.tamano || '').toLowerCase();
-	const cantidad = Number(conv.data?.cantidad || 0);
-	const sizeRec = Array.isArray(cfg.catalog?.sizes)? cfg.catalog.sizes.find(s=> String(s.id).toLowerCase()===tamanoId) : null;
-
-	// Helper: detect if the selected flavors include the premium cheese flavor
-	const hasOnlyPremiumCheese = (()=>{
-		const PREMIUM = 'Queso Canario Premium';
-		const dist = Array.isArray(conv.data?.sabores_distribucion) ? conv.data.sabores_distribucion : null;
-		if (Array.isArray(dist) && dist.length>0){
-			return dist.every(d=> String(d?.flavor||'').trim()===PREMIUM);
-		}
-		const list = Array.isArray(conv.data?.sabores) ? conv.data.sabores : [];
-		return list.length>0 && list.every(s=> String(s).trim()===PREMIUM);
-	})();
-
-	// Base price from size or legacy precios map
-	let precioUnit = Number((sizeRec && sizeRec.price != null) ? sizeRec.price : (precioMap[tamanoId])) || 0;
-
-	// Override price ONLY when premium cheese flavor is selected
-	if (hasOnlyPremiumCheese) {
-		if (tamanoId === 'grande' || tamanoId.startsWith('grande')) precioUnit = 40;
-		else if (tamanoId === 'cajitas' || tamanoId.startsWith('cajitas')) precioUnit = 13;
-	}
-
-	const subtotal = precioUnit * (cantidad || 0);
-	const baseSabores = Array.isArray(conv.data?.sabores) ? conv.data.sabores : [];
-	const distrib = Array.isArray(conv.data?.sabores_distribucion) ? conv.data.sabores_distribucion.map(d=>({ count:Number(d.count)||0, flavor:d.flavor })) : null;
-	// Adjust label to reflect final unit price if override applied
-	let finalLabel = conv.selectedSize?.label || tamanoId;
-	if (hasOnlyPremiumCheese){
-		const priceTag = `(${precioUnit}€)`;
-		if (typeof finalLabel==='string'){
-			if (/\(.*?\)/.test(finalLabel)) finalLabel = finalLabel.replace(/\(.*?\)/, priceTag);
-			else finalLabel = `${finalLabel} ${priceTag}`.trim();
-		}
-	}
-	return {
-		tamano: tamanoId, // corregido (antes 'amano')
-		label: finalLabel,
-		type: conv.selectedSize?.type || 'entera',
-		cantidad,
-		sabores: baseSabores,
-		sabores_distribucion: distrib || undefined,
-		fecha: conv.data?.fecha || '',
-		observacion: conv.data?.observacion || '',
-		precioUnit,
-		total: subtotal
-	};
-}
+// (buildOrderItem is defined earlier; removed legacy duplicate)
 
 function summarizeItems(conv, cfg, msgs){
 	const items = Array.isArray(conv.items) ? conv.items : [];
@@ -461,16 +447,46 @@ function summarizeItems(conv, cfg, msgs){
 		lines.push('Resumen del pedido:');
 		items.forEach((it, idx)=>{
 			let saboresTexto;
+			let subtotal = 0;
+			const precioMap = (cfg.options && cfg.options.precios) || {};
+			const tamanoId = (it.tamano || '').toLowerCase();
+			// Si hay distribución de sabores, sumar por sabor
 			if(Array.isArray(it.sabores_distribucion) && it.sabores_distribucion.length){
-				saboresTexto = it.sabores_distribucion.map(d=>`${d.flavor} x${d.count}`).join(', ');
+				const isGrande = (tamanoId === 'grande' || tamanoId.startsWith('grande'));
+				const baseUnit = Number(precioMap[tamanoId] || it.precioUnit || 0);
+				const premiumUnit = isGrande ? 40 : 13;
+				saboresTexto = it.sabores_distribucion.map(d=>{
+					const unit = (d.flavor === 'Queso Canario Premium') ? premiumUnit : baseUnit;
+					return `${d.flavor} x${d.count} (${unit}€)`;
+				}).join(', ');
+				for(const d of it.sabores_distribucion){
+					const unit = (d.flavor === 'Queso Canario Premium') ? premiumUnit : baseUnit;
+					subtotal += unit * Number(d.count);
+				}
 			} else if(it.sabores_por_porcion){
 				saboresTexto = it.sabores_por_porcion.map((arr,i)=>`${i+1}) ${arr.join(', ')}`).join(' | ');
+				subtotal = Number(it.total || 0);
+			} else if(Array.isArray(it.sabores) && it.sabores.length){
+				const isGrande = (tamanoId === 'grande' || tamanoId.startsWith('grande'));
+				const baseUnit = Number(precioMap[tamanoId] || it.precioUnit || 0);
+				const premiumUnit = isGrande ? 40 : 13;
+				// Tally counts per flavor
+				const tally = new Map();
+				for(const s of it.sabores){ tally.set(s, (tally.get(s)||0)+1); }
+				saboresTexto = Array.from(tally.entries()).map(([s,c])=>{
+					const unit = (s === 'Queso Canario Premium') ? premiumUnit : baseUnit;
+					return `${s} x${c} (${unit}€)`;
+				}).join(', ');
+				for(const [s,c] of tally.entries()){
+					const unit = (s === 'Queso Canario Premium') ? premiumUnit : baseUnit;
+					subtotal += unit * Number(c);
+				}
 			} else {
-				saboresTexto = Array.isArray(it.sabores) ? it.sabores.join(', ') : '';
+				saboresTexto = '';
+				subtotal = Number(it.total || 0);
 			}
 			const label = it.label || it.tamano;
-			const obs = it.observacion ? ` • Obs: ${it.observacion}` : '';
-			lines.push(`${idx+1}) ${label} x${it.cantidad} • Sabores: ${saboresTexto || '-' }${obs} • Subtotal: ${it.total||0}€`);
+			lines.push(`${idx+1}) ${label} x${it.cantidad} • Sabores: ${saboresTexto || '-' } • Subtotal: ${subtotal}€`);
 		});
 	}
 	const total = Number(conv.items?.reduce((acc,it)=> acc + (Number(it.total)||0), 0) || conv.total || 0);
@@ -533,16 +549,14 @@ function summarizeStoredOrder(order){
 					saboresTexto = Array.isArray(it.sabores) ? it.sabores.join(', ') : '';
 				}
 				const label = it.label || it.tamano || '';
-				const obs = it.observacion ? ` • Obs: ${it.observacion}` : '';
 				const subtotal = (typeof it.total === 'number') ? ` • Subtotal: ${it.total}€` : '';
-				lines.push(`${idx+1}) ${label} x${it.cantidad||''} • Sabores: ${saboresTexto || '-'}${obs}${subtotal}`);
+				lines.push(`${idx+1}) ${label} x${it.cantidad||''} • Sabores: ${saboresTexto || '-'}${subtotal}`);
 			});
 		} else {
 			const label = f.tamano || order.tamano || '';
 			const sab = Array.isArray(f.sabores) ? f.sabores.join(', ') : (order.sabores||[]).join(', ');
 			const cant = (f.cantidad != null ? f.cantidad : (order.cantidad||''));
-			const obs = f.observacion ? ` • Obs: ${f.observacion}` : '';
-			lines.push(`${label} x${cant} • Sabores: ${sab || '-' }${obs}`);
+			lines.push(`${label} x${cant} • Sabores: ${sab || '-' }`);
 		}
 		const total = Number(order.total || (items ? items.reduce((acc,it)=> acc + (Number(it.total)||0), 0) : 0)) || 0;
 		lines.push(`Total: ${total}€`);
@@ -559,7 +573,6 @@ function internalToSessionStage(internal){
 		case 'ask_flavors': return 'ask_sabores';
 		case 'ask_qty': return 'ask_cantidad';
 		case 'ask_date': return 'ask_fecha';
-		case 'ask_obs': return 'ask_obs';
 		case 'ask_more': return 'ask_mas';
 		case 'confirm': return 'confirm';
 		default: return internal||'';
@@ -575,7 +588,6 @@ function sessionToInternalStage(sessionStage){
 		case 'ask_sabores': return 'ask_flavors';
 		case 'ask_cantidad': return 'ask_qty';
 		case 'ask_fecha': return 'ask_date';
-		case 'ask_obs': return 'ask_obs';
 		case 'ask_mas': return 'ask_more';
 		case 'confirm': return 'confirm';
 		default: return String(sessionStage||'');
@@ -599,7 +611,7 @@ function genPromptForStage(cfg, conv, msgs, stage){
 			const sched = cfg.messages?.pickup_schedule ? ('\n\n' + cfg.messages.pickup_schedule) : '';
 			return base + sched;
 		}
-		case 'ask_obs': return msgs.ask_obs||'📝 Observaciones (escribe "no" si no hay)';
+		// Eliminado paso de observaciones: después de fecha, va a añadir más
 		case 'ask_more': return msgs.ask_mas || '¿Quieres añadir algo más a tu pedido? (sí/no) ➕';
 		case 'confirm': {
 			const tpl=(msgs.confirm||'Confirma pedido: {tamano} {fecha} Total {total}€');
@@ -1198,8 +1210,9 @@ async function manejarMensajeTenant(a, b, c){
 `Escribe menu para volver al menú.
 
 ⏰ Horarios de recogida:
-• Miércoles a Domingo: 11:00–13:00
-• Viernes por la tarde: 18:00–20:00
+• Miércoles y jueves: 11:00 – 13:00
+• Viernes por la tarde: 18:00 – 20:30
+• Sábado y domingo: 11:00 – 13:30
 (No trabajamos Lunes ni Martes)
 
 📦 Antelación:
@@ -1237,8 +1250,6 @@ Elige tamaño
 Indica sabores (ejemplo: “2 oreo, 1 clásica…”)
 
 Fecha (DD-MM, mínimo 3 días vista)
-
-Observaciones (opcional)
 
 ❌ Cancelar / modificar:
 • Escribe cancelar en cualquier momento
@@ -1291,7 +1302,7 @@ C. Abián, 4, 35212 Marpequeña, Las Palmas
 	// --- Intercepción específica de 'atras' para editar SOLO la fecha sin retroceder a sabores ---
 	try {
 		const backSetInline = new Set(['atras','atrás']);
-		if(backSetInline.has(lower) && (conv.stage==='ask_obs' || conv.stage==='ask_more')){
+		if(backSetInline.has(lower) && (conv.stage==='ask_more')){
 			// Si ya hay fecha y queremos re-editarla
 			if(conv.data && conv.data.fecha){
 				// Marcar flags de edición de fecha
@@ -1337,7 +1348,7 @@ C. Abián, 4, 35212 Marpequeña, Las Palmas
 		} catch{}
 		// Si no había historial, inicializarlo con el orden lineal conocido hasta el stage actual
 		if(!Array.isArray(conv.stateHistory) || !conv.stateHistory.length){
-			const linear=['ask_size','ask_flavors','confirm_flavor_distribution','ask_qty','ask_date','ask_obs','ask_more','confirm'];
+			const linear=['ask_size','ask_flavors','confirm_flavor_distribution','ask_qty','ask_date','ask_more','confirm'];
 			const idx = linear.indexOf(conv.stage);
 			conv.stateHistory = idx>0 ? linear.slice(0, idx+1) : [conv.stage];
 		}
@@ -1361,31 +1372,17 @@ C. Abián, 4, 35212 Marpequeña, Las Palmas
 		// Regenerar prompt
 		switch(prev){
 			case 'ask_size': {
-				const prompt = buildSizeQuestion(cfg);
-				if(shouldSkipPromptDueToDebounce(session, prompt)) return null;
-				await setLastPrompt(tenantId, phone, prompt);
-				return prompt;
-			}
-			case 'ask_flavors': return buildAskSaboresPrompt(cfg);
-			case 'confirm_flavor_distribution': {
-				const dist = conv.data?.sabores_distribucion || [];
-				if(dist.length){
-					const resumen = dist.map(d=>`${d.count} ${d.flavor}`).join(' ');
-					return `Has indicado: ${resumen}. ¿Confirmas esta selección 😄 ? (si/no)`;
-				}
-				return buildAskSaboresPrompt(cfg);
-			}
-			case 'ask_qty': {
-				const st=conv.selectedSize?.type;
-				if(st==='cajitas') return msgs.ask_cantidad_cajitas||'¿Cantidad de cajitas? (1-50) 📦';
-				return msgs.ask_cantidad_entera||'¿Cantidad? (1-20) 🔢';
+				const p = buildSizeQuestion(cfg);
+				if(shouldSkipPromptDueToDebounce(session, p)) return null;
+				await setLastPrompt(tenantId, phone, p);
+				return p;
 			}
 			case 'ask_date': {
 				const base = msgs.ask_fecha || buildAskDatePrompt();
 				const sched = cfg.messages?.pickup_schedule ? ('\n\n' + cfg.messages.pickup_schedule) : '';
 				return base + sched;
 			}
-			case 'ask_obs': return msgs.ask_obs||'📝 Observaciones (escribe "no" si no hay)';
+			// Eliminado paso de observaciones
 			case 'ask_more': return msgs.ask_mas || '¿Quieres añadir algo más a tu pedido? (sí/no) ➕';
 			case 'confirm': {
 				const tpl=(msgs.confirm||'Confirma pedido: {tamano} {fecha} Total {total}€');
@@ -1705,15 +1702,18 @@ if(conv.stage==='none'){
             delete conv.data.cantidad_sugerida;
             await markLastPromptAnswered(tenantId, phone);
 						if(conv.data && conv.data.fecha){
-							// Fecha ya establecida previamente (multi-item). Saltar a observaciones directamente
-							const nextState = { ...conv, stage: 'ask_obs' };
+							// Fecha ya establecida previamente (multi-item). Agregar item y pasar a añadir más
+							const item = buildOrderItem(conv, cfg);
+							if(!Array.isArray(conv.items)) conv.items = [];
+							conv.items.push(item);
+							conv.total = conv.items.reduce((acc, it)=> acc + (Number(it.total)||0), 0);
+							const nextState = { ...conv, stage: 'ask_more' };
 							pushStageHistory(nextState, 'confirm_flavor_distribution');
-							pushStageHistory(nextState, 'ask_obs');
+							pushStageHistory(nextState, 'ask_more');
 							runtime.setState(tenantId, phone, nextState);
-							try { await saveSessionState(tenantId, phone, 'ask_obs'); } catch {}
+							try { await saveSessionState(tenantId, phone, 'ask_more'); } catch {}
 							try { await persistStageHistory(tenantId, phone, nextState); } catch{}
-							const promptObs = msgs.ask_obs || '¿Alguna observación? (escribe "no" si no hay)';
-							await sendPrompt(tenantId, client, msg.from, session, promptObs, { bypassDebounce:true });
+							await sendPrompt(tenantId, client, msg.from, session, msgs.ask_mas || '¿Quieres añadir algo más a tu pedido? (sí/no) ➕', { bypassDebounce:true });
 							return null;
 						} else {
 							const nextState = { ...conv, stage: 'ask_date' };
@@ -1756,11 +1756,17 @@ if(conv.stage==='none'){
 			}
 			// If date already provided in previous items, skip asking date again
 			if(conv.data && conv.data.fecha){
-				const nextState = { ...conv, stage: 'ask_obs' };
+				// Construir y agregar item actual a la lista temporal antes de pasar a añadir más
+				const item = buildOrderItem(conv, cfg);
+				if(!Array.isArray(conv.items)) conv.items = [];
+				conv.items.push(item);
+				conv.total = conv.items.reduce((acc, it)=> acc + (Number(it.total)||0), 0);
+
+				const nextState = { ...conv, stage: 'ask_more' };
 				runtime.setState(tenantId, phone, nextState);
-				console.log(`[LOG] [${tenantId}] Saltando fecha (ya definida) -> ask_obs para ${phone}`);
-				try { await saveSessionState(tenantId, phone, 'ask_obs'); } catch {}
-				await sendPrompt(tenantId, client, msg.from, session, msgs.ask_obs||'Observaciones (escribe "no" si no hay)');
+				console.log(`[LOG] [${tenantId}] Saltando fecha (ya definida) -> ask_more para ${phone}`);
+				try { await saveSessionState(tenantId, phone, 'ask_more'); } catch {}
+				await sendPrompt(tenantId, client, msg.from, session, msgs.ask_mas||'¿Quieres añadir algo más a tu pedido? (sí/no) ➕');
 				return null;
 			}
 			const newState = { ...conv, stage: 'ask_date' };
@@ -1775,8 +1781,9 @@ if(conv.stage==='none'){
 			return null;
 		}
 		case 'ask_date': {
-			const dt = parseDDMMYYYY(text);
-			if(!dt) return 'Formato de fecha no reconocido 😊. Usa DD-MM o DD/MM (ejemplo: 25-12).';
+			let dt = parseDDMMYYYY(text);
+			if(!dt) dt = parseNaturalEsDate(text);
+			if(!dt) return 'Formato de fecha no reconocido 😊. Usa DD-MM, DD/MM o por ejemplo "28 de octubre".';
 			const now = new Date(); now.setHours(0,0,0,0);
 			const diffDays = (dt.getTime() - now.getTime())/86400000;
 			if(diffDays < 3) return 'Gracias 🙌. Para preparar tu pedido necesitamos al menos 3 días. ¿Puedes indicar otra fecha a partir de dentro de 3 días?';
@@ -1806,53 +1813,23 @@ if(conv.stage==='none'){
 					sess.lastAsk = { stage: internalToSessionStage(target), ts: Date.now() };
 					await convStore.writeConv(tenantId, phone, sess);
 				} catch{}
-				let prompt;
-				if(target==='ask_obs') prompt = msgs.ask_obs||'Observaciones (escribe "no" si no hay)';
-				else if(target==='ask_more') prompt = msgs.ask_mas || '¿Quieres añadir algo más a tu pedido? (sí/no) ➕';
-				else prompt = msgs.ask_obs||'Observaciones (escribe "no" si no hay)';
-				await sendPrompt(tenantId, client, msg.from, session, prompt, { bypassDebounce:true });
+				const promptTxt = msgs.ask_mas || '¿Quieres añadir algo más a tu pedido? (sí/no) ➕';
+				await sendPrompt(tenantId, client, msg.from, session, promptTxt, { bypassDebounce:true });
 				return null;
 			}
-			const newState = { ...conv, stage: 'ask_obs' };
-			runtime.setState(tenantId, phone, newState);
-			console.log('[STATE]', phone, '->', newState.stage);
-			try { await saveSessionState(tenantId, phone, 'ask_obs'); } catch {}
-			await sendPrompt(tenantId, client, msg.from, session, msgs.ask_obs||'Observaciones (escribe "no" si no hay)');
-			return null;
-		}
-		case 'ask_obs': {
-			// Permitir volver a la fecha si el usuario escribe atras en observaciones
-			if(/^(atras|atrás)$/i.test(lower)){
-				// Solo retroceder si ya teníamos fecha para re-editarla
-				delete conv.data.fecha; // forzar reentrada
-				delete conv.data.fecha_dow;
-				const prevState = { ...conv, stage: 'ask_date' };
-				runtime.setState(tenantId, phone, prevState);
-				try { await saveSessionState(tenantId, phone, 'ask_date'); } catch {}
-				const base = msgs.ask_fecha || buildAskDatePrompt();
-				const sched = cfg.messages?.pickup_schedule ? ('\n\n' + cfg.messages.pickup_schedule) : '';
-				await sendPrompt(tenantId, client, msg.from, session, base + sched, { bypassDebounce:true });
-				return null;
-			}
-			conv.data.observacion = (['no','ninguna'].includes(lower)) ? '' : text.trim();
-			console.log(`[LOG] [${tenantId}] Guardando observación para ${phone}: "${conv.data.observacion}"`);
-			if(conv.data.observacion.length>150) return 'Observación muy larga (máx 150). Indica otra más corta:';
-
-			// Construir y agregar item actual a la lista temporal
+			// Construir y agregar item actual ahora que ya hay fecha
 			const item = buildOrderItem(conv, cfg);
 			if(!Array.isArray(conv.items)) conv.items = [];
 			conv.items.push(item);
 			conv.total = conv.items.reduce((acc, it)=> acc + (Number(it.total)||0), 0);
-
-			// Avanzar a preguntar si quiere añadir más
 			const newState = { ...conv, stage: 'ask_more' };
 			runtime.setState(tenantId, phone, newState);
 			console.log('[STATE]', phone, '->', newState.stage);
 			try { await saveSessionState(tenantId, phone, 'ask_more'); } catch {}
-			await sendPrompt(tenantId, client, msg.from, session, msgs.ask_mas || '¿Quieres añadir algo más a tu pedido? (sí/no) ➕'
-);
+			await sendPrompt(tenantId, client, msg.from, session, msgs.ask_mas||'¿Quieres añadir algo más a tu pedido? (sí/no) ➕');
 			return null;
 		}
+		// ask_obs eliminado: se añade el item al pasar fecha o al tener fecha previa y se salta directo a ask_more
 		case 'ask_more': {
 			// Si escribe atras aquí y hay fecha, permitir volver a editar la fecha antes de añadir más items
 			if(/^(atras|atrás)$/i.test(lower)){

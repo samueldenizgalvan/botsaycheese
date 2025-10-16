@@ -31,12 +31,12 @@
   "flavor_list": "Sabores 🤤:\n• Clásica 🍰\n• Lotus 🍪\n• Pistacho 🟢\n• Oreo 🔵\n• Gofio 🌾\n• Mango-Maracuyá 🥭\n• Hippo 🦛\n• Queso Canario Premium 🥇 ( EDICION LIMITADA)  40€ tarta / 13€ cajita\nUsa solo los de la lista mostrada",
   "ask_sabores": "👉 Dime qué *sabores* quieres 🍰.\n\n✅ Puedes elegir uno o varios.\n✅ Solo escribe cuántos quieres de cada sabor.\n\n📌 Ejemplos:\n- 1 clásica 2 oreo 3 mango (sin comas)🥭\n- 1 lotus , 2 oreo , 4 mango(con comas) \n- 2 Oreo 3 Pistacho 1 Lotus \n\nSabores disponibles:\n• Clásica 🍰\n• Lotus 🍪\n• Pistacho 🟢\n• Oreo 🔵\n• Gofio 🌾\n• Mango-Maracuyá 🥭\n• Hippo 🦛 \n• Queso Canario Premium 🥇  EDICION LIMITADA)  40€ tarta / 13€ cajita\n\n✍️ Escribe la cantidad seguida del nombre del sabor.",
     "porciones_info": "Las porciones (4,5€) son sin reserva de Viernes a Domingo.",
-  "horario_info": "Horario semanal:\nMiércoles a Domingo solo por la mañana de 11:00 / 13:30\nViernes Solamente por la tarde de 18:00 / 20:30",
+  "horario_info": "❗Horario semanal:\nMiércoles y jueves: 11:00 – 13:00\nViernes: 18:00 – 20:30 \n Sábado y domingo: 11:00 – 13:30",
 
     "ask_qty_grande": "¿Cuántas *tartas grandes* quieres? (1–20) 🔢",
     "ask_qty_cajitas": "¿Cuántas *cajitas* quieres? (1–50) 📦",
-    "ask_fecha": "¿*Día de recogida*? 📅 (DD/MM). *Mínimo 3 días* de antelación ⏳.",
-    "ask_observacion": "¿Alguna *observación*? 📝 (opcional; puedes escribir \"no\")",
+  "ask_fecha": "¿*Día de recogida*? 📅 (DD/MM o por ejemplo: 28 de octubre). *Mínimo 3 días* de antelación ⏳.",
+  "ask_observacion": "",
 
   "summary": "🧾 Pedido para {telefono}.\n• Tamaño: {tamano}\n• Sabores: {sabores}\n• Cantidad: {cantidad}\n• Recogida: {fecha}{horario}\n• Total : *{total}€*\n\n¿Confirmas? (si/no) ✅❌",
     "confirm_yesno": "👉 Responde *si* o *no*, por favor.",
@@ -53,8 +53,8 @@
 
     "ask_cantidad_entera": "¿Cuántas *tartas grandes* quieres? (1–20) 🔢",
     "ask_cantidad_cajitas": "¿Cuántas *cajitas* quieres? (1–50) 📦",
-  "ask_obs": "¿Alguna *observación*? 📝 (opcional; puedes escribirla directamente o poner \"no\")",
-  "pickup_schedule": "Las porciones (4,5€) son sin reserva de Viernes a Domingo.❗Horario semanal:\nMiércoles a Domingo 11:00 / 13:30\nViernes 18:00 / 20:30",
+  "ask_obs": "",
+  "pickup_schedule": "Las porciones (4,5€) son sin reserva de Viernes a Domingo.\n❗Horario semanal:\nMiércoles y jueves: 11:00 – 13:00\nViernes: 18:00 – 20:30 \n Sábado y domingo: 11:00 – 13:30",
     "ask_delete_phone": "Vale 🗂️. Dime el *número de teléfono* del pedido que quieres cancelar (9 dígitos) 🔢.",
     "delete_not_found": "No encontré pedidos *pendientes* con ese número 🔎 Escribe menu para ver opciones.",
     "delete_found_confirm": "He encontrado {count} pedido(s) *pendiente(s)* para el teléfono *{telefono}* ☎️. ¿Quieres borrarlo(s)? (si/no)",
@@ -83,8 +83,7 @@
         },
         { "when": "tamano == grande",  "ask": "ask_qty_grande",  "save": "cantidad", "validate": { "numRange": [1, 20] } },
         { "when": "tamano == cajitas", "ask": "ask_qty_cajitas", "save": "cantidad", "validate": { "numRange": [1, 100] } },
-        { "ask": "ask_fecha",       "save": "fecha",       "validate": "date_plus3" },
-        { "ask": "ask_observacion", "save": "observacion", "validate": "text_opt" }
+  { "ask": "ask_fecha",       "save": "fecha",       "validate": "date_plus3" }
       ],
       "summary": "summary",
       "confirm": { "yes": ["si", "sí", "ok", "confirmo"], "no": ["no", "cancelar"] },
