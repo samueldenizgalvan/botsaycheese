@@ -27,9 +27,9 @@
   "bad_option": "Mmm… no te entendí 🤖. Escribe *pedido* para empezar 🎂 o *menu* para ver opciones 📋.",
 
     "ask_telefono": "Indica tu *teléfono* (9 dígitos) 📞:",
-    "ask_tamano": "Elige *tamaño* 📏:\n1) *Grande* (10–12 raciones, 1.5 Kg) – *35€*\n2) *Cajitas* (400 g) – *12€*\nResponde *1/2* o escribe *grande/cajitas*.",
+    "ask_tamano": "Elige *tamaño* 📏:\n1) *Grande* (10–12 raciones, 1.7 Kg) – *35€*\n2) *Cajitas* (400 g) – *12€*\nResponde *1 o 2* o escribe *grande o cajita*.",
   "flavor_list": "Sabores 🤤:\n• Clásica 🍰\n• Lotus 🍪\n• Pistacho 🟢\n• Oreo 🔵\n• Gofio 🌾\n• Mango-Maracuyá 🥭\n• Hippo 🦛\n• Queso Canario Premium 🥇 ( EDICION LIMITADA)  40€ tarta / 13€ cajita\nUsa solo los de la lista mostrada",
-  "ask_sabores": "👉 Dime qué *sabores* quieres 🍰.\n\n✅ Puedes elegir uno o varios.\n✅ Solo escribe cuántos quieres de cada sabor.\n\n📌 Ejemplos:\n- 1 clásica 2 oreo 3 mango (sin comas)🥭\n- 1 lotus , 2 oreo , 4 mango(con comas) \n- 2 Oreo 3 Pistacho 1 Lotus \n\nSabores disponibles:\n• Clásica 🍰\n• Lotus 🍪\n• Pistacho 🟢\n• Oreo 🔵\n• Gofio 🌾\n• Mango-Maracuyá 🥭\n• Hippo 🦛 \n• Queso Canario Premium 🥇  EDICION LIMITADA)  40€ tarta / 13€ cajita\n\n✍️ Escribe la cantidad seguida del nombre del sabor.",
+  "ask_sabores": "👉 Dime qué *sabores* quieres 🍰.\n\n✅ Puedes elegir uno o varios.\n✅ Solo escribe cuántos quieres de cada sabor.\n\n📌 Ejemplos:\n- 2 Oreo 3 Pistacho 1 Lotus \n\nSabores disponibles:\n• Clásica 🍰\n• Lotus 🍪\n• Pistacho 🟢\n• Oreo 🔵\n• Gofio 🌾\n• Mango-Maracuyá 🥭\n• Hippo 🦛 \n• Queso Canario Premium 🥇  EDICION LIMITADA)  40€ tarta / 13€ cajita\n\n✍️ Escribe la cantidad seguida del nombre del sabor.",
     "porciones_info": "Las porciones (4,5€) son sin reserva de Viernes a Domingo.",
   "horario_info": "❗Horario semanal:\nMiércoles y jueves: 11:00 – 13:00\nViernes: 18:00 – 20:30 \n Sábado y domingo: 11:00 – 13:30",
 

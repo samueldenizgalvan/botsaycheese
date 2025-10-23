@@ -1228,7 +1228,7 @@ async function manejarMensajeTenant(a, b, c){
 • No se encargan por WhatsApp
 
 📏 Tamaños y precios:
-• Tarta (10–12 raciones, 1.5 Kg) – 35€
+• Tarta (10–12 raciones, 1.7 Kg) – 35€
 • Cajitas (400 g) – 12€
 
 🍰 Sabores disponibles:

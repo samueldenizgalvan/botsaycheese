@@ -139,7 +139,7 @@ function buildReminderText(cfg, order){
       horario = '\n*Domingo*: Recogida 11:00–13:30';
     }
   }
-  return `Recordatorio de tu pedido para *mañana* (${fecha}) en *${brand}*:\n\n${detalle}• Total aprox: *${total}€*${horario}\n\n📍 C. Abián, 4, 35212 Marpequeña, Las Palmas.`;
+  return `Recordatorio de tu pedido para *mañana* (${fecha}) en *${brand}*:\n\n${detalle}• Total : *${total}€*${horario}\n\n📍 C. Abián, 4, 35212 Marpequeña, Las Palmas.`;
 }
 
 const api = {
