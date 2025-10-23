@@ -68,7 +68,8 @@
     "tamano": ["grande", "cajitas"],
     "tamano_alias": { "1": "grande", "2": "cajitas", "tarta grande": "grande" },
   "sabores": ["Clásica", "Lotus", "Pistacho", "Oreo", "Gofio", "Mango-Maracuyá", "Hippo", "Queso Canario Premium"],
-    "precios": { "grande": 35, "cajitas": 12, "grande_queso_curado": 40, "cajitas_queso_curado": 13 }
+    "precios": { "grande": 35, "cajitas": 12, "grande_queso_curado": 40, "cajitas_queso_curado": 13 },
+    "blackout_dates": ["01-11"]
   },
   "flow": [
     {

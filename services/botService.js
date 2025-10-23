@@ -215,6 +215,17 @@ function validateDateMin3d(text){
 	return d.getTime() >= min.getTime();
 }
 
+// Check if a date is in configured blackout dates (dd-mm), e.g., ["01-11"]
+function isBlackoutDate(cfg, d){
+	try{
+		const arr = (cfg?.options?.blackout_dates || cfg?.blackout_dates || []);
+		if(!Array.isArray(arr) || arr.length===0) return false;
+		const pad = n => String(n).padStart(2,'0');
+		const key = `${pad(d.getDate())}-${pad(d.getMonth()+1)}`;
+		return arr.map(String).some(x=> x.replace(/[\/]/g,'-')===key);
+	}catch{ return false; }
+}
+
 // Day-of-week helpers (Spanish)
 function dayNameEs(d){
 	try{
@@ -1795,6 +1806,12 @@ if(conv.stage==='none'){
 			if(dow===1 || dow===2){
 				const name = dayNameEs(dt);
 				return `Ese día cae en ${name} y no realizamos entregas. Indica otra fecha (de miércoles a domingo).`;
+			}
+			// Rechazar fechas bloqueadas puntuales (festivos, cierre)
+			if(isBlackoutDate(cfg, dt)){
+				const pad=n=>String(n).padStart(2,'0');
+				const bkey = `${pad(dt.getDate())}-${pad(dt.getMonth()+1)}`;
+				return `Ese día (${bkey}) estamos cerrados. Indica otra fecha, por favor.`;
 			}
 			// Guardar sin año: DD-MM
 			const pad=n=>String(n).padStart(2,'0');
