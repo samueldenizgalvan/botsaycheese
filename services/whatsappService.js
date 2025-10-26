@@ -326,13 +326,6 @@ function attachBotHandlers(client, manejarMensajeTenant){
     client.on('message', async (msg) => {
       try {
         if (!msg || msg.fromMe) return;
-        // Ignore groups and status broadcasts: only respond to private chats (@c.us)
-        const from = String(msg.from||'');
-        const author = String(msg.author||'');
-        const isGroup = /@g\.us$/.test(from) || /@g\.us$/.test(author);
-        const isStatus = from === 'status@broadcast';
-        const isPrivate = /@c\.us$/.test(from);
-        if (isGroup || isStatus || !isPrivate) return;
         const id = msg?.id?._serialized;
         if (id) { if (seen.has(id)) return; seen.add(id); }
   // Call provided handler; server.js already binds tenant when needed

@@ -114,31 +114,6 @@ async function append(tenantId, order){
   try { scheduleReminder(tenantId, rec).catch(()=>{}); } catch{}
   // SSE: evento específico de creación
   try { const serverMod = require('../server'); if(serverMod.pushEvent) serverMod.pushEvent('order_created', { tenantId, order: rec }); } catch{}
-  // Auto-confirm pending orders if configured
-  try {
-    const store = require('./store');
-    const cfg = await store.readJSON(tenantId, 'config.json', {});
-    const auto = (cfg?.options?.auto_confirm_pending === true) || (cfg?.auto_confirm_pending === true);
-    if (auto && String(rec.status||'pending') === 'pending'){
-      const confirmed = await confirm(tenantId, rec.id).catch(()=>null);
-      if(confirmed){
-        // Notify customer via WhatsApp (best effort) unless order came from chat (to avoid duplicate message)
-        const isChat = (order && order.meta && order.meta.source === 'chat');
-        if(!isChat){
-          try {
-            const wa = require('./whatsappService');
-            const phone = (confirmed?.customer?.phone) || (confirmed?.fields?.telefono) || '';
-            if (phone) {
-              const fecha = (confirmed?.fields?.fecha) ? ` para el ${confirmed.fields.fecha}` : '';
-              const sched = cfg?.messages?.pickup_schedule ? `\n\n${cfg.messages.pickup_schedule}` : '';
-              const msg = `¡Hola! 🎉\nHemos confirmado tu pedido${fecha}. ✅\nGracias por confiar en nosotros. Recuerda que los pagos son a la recogida en efectivo o tarjeta 🧁🥳${sched}`;
-              await wa.sendMessage(tenantId, phone, msg).catch(()=>{});
-            }
-          } catch{}
-        }
-      }
-    }
-  } catch{}
   return rec;
 }
 
@@ -351,7 +326,6 @@ async function cloneAsModifiedNew(tenantId, id, update={}){
   if(update.customer && update.customer.phone){ next.customer = { ...(next.customer||{}), phone: update.customer.phone }; }
   if(update.fields){ next.fields = { ...(next.fields||{}), ...update.fields }; }
   if(Array.isArray(update.items)) next.items = update.items;
-  if(update.meta){ next.meta = { ...(next.meta||{}), ...update.meta }; }
   if(typeof update.total === 'number'){
     next.total = update.total;
   } else if(Array.isArray(next.items)){
@@ -373,31 +347,6 @@ async function cloneAsModifiedNew(tenantId, id, update={}){
   } catch{}
   await afterWrite(tenantId);
   try { scheduleReminder(tenantId, next).catch(()=>{}); } catch{}
-  // Auto-confirm if configured, mirroring append() behavior
-  try {
-    const store = require('./store');
-    const cfg = await store.readJSON(tenantId, 'config.json', {});
-    const auto = (cfg?.options?.auto_confirm_pending === true) || (cfg?.auto_confirm_pending === true);
-    if(auto){
-      const confirmed = await confirm(tenantId, next.id).catch(()=>null);
-      if(confirmed){
-        // Notify customer via WA unless it's a chat-origin order
-        const isChat = !!(next && next.meta && next.meta.source === 'chat');
-        if(!isChat){
-          try {
-            const wa = require('./whatsappService');
-            const phone = (confirmed?.customer?.phone) || (confirmed?.fields?.telefono) || '';
-            if(phone){
-              const fecha = (confirmed?.fields?.fecha) ? ` para el ${confirmed.fields.fecha}` : '';
-              const sched = cfg?.messages?.pickup_schedule ? `\n\n${cfg.messages.pickup_schedule}` : '';
-              const msg = `¡Hola! 🎉\nHemos confirmado tu pedido${fecha}. ✅\nGracias por confiar en nosotros. Recuerda que los pagos son a la recogida en efectivo o tarjeta 🧁🥳${sched}`;
-              await wa.sendMessage(tenantId, phone, msg).catch(()=>{});
-            }
-          } catch{}
-        }
-      }
-    }
-  } catch{}
   return next;
 }
 

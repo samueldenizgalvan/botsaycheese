@@ -497,8 +497,7 @@ function summarizeItems(conv, cfg, msgs){
 				subtotal = Number(it.total || 0);
 			}
 			const label = it.label || it.tamano;
-			// Mostrar solo el contenido por ítem; el total global se muestra al final
-			lines.push(`${idx+1}) ${label} x${it.cantidad} • Sabores: ${saboresTexto || '-' }`);
+			lines.push(`${idx+1}) ${label} x${it.cantidad} • Sabores: ${saboresTexto || '-' } • Subtotal: ${subtotal}€`);
 		});
 	}
 	const total = Number(conv.items?.reduce((acc,it)=> acc + (Number(it.total)||0), 0) || conv.total || 0);
@@ -1940,12 +1939,12 @@ if(conv.stage==='none'){
 			const stRuntime = runtime.getState(tenantId, phone) || {};
 			if(stRuntime.modifyTargetId){
 				try {
-					await orders.cloneAsModifiedNew(tenantId, stRuntime.modifyTargetId, { customer:{ phone:conv.data.telefono }, fields: payloadFields, items, total, meta:{ source:'chat' } });
+					await orders.cloneAsModifiedNew(tenantId, stRuntime.modifyTargetId, { customer:{ phone:conv.data.telefono }, fields: payloadFields, items, total });
 				} catch(e){ await orders.add(tenantId,{ customer:{ phone:conv.data.telefono }, fields: payloadFields, total }); }
 				// Clear modify flag
 				try { delete stRuntime.modifyTargetId; runtime.setState(tenantId, phone, stRuntime); } catch{}
 			} else {
-				await orders.add(tenantId,{ customer:{ phone:conv.data.telefono }, fields: payloadFields, total, meta:{ source:'chat' } });
+				await orders.add(tenantId,{ customer:{ phone:conv.data.telefono }, fields: payloadFields, total });
 			}
 			// Persistir marca de confirmación para idempotencia
 			try {
@@ -1955,20 +1954,7 @@ if(conv.stage==='none'){
 			const wasWelcomed=conv.welcomed,lastW=conv.lastWelcomeAt;
 			try { await saveSessionState(tenantId, phone, 'confirm'); } catch {}
 			runtime.setState(tenantId, phone,{stage:'none',data:{},welcomed:wasWelcomed,lastWelcomeAt:lastW});
-			// Build confirmation text with robust fecha and include a summary of the order
-			const fechaText = (function(){
-				const fwd = formatFechaWithDay(conv);
-				if(fwd) return fwd;
-				try{
-					const itWithFecha = (items||[]).find(it=> it && it.fecha);
-					return (itWithFecha && itWithFecha.fecha) || (conv && conv.data && conv.data.fecha) || '';
-				}catch{ return conv?.data?.fecha || ''; }
-			})();
-			const confirmedText = String(msgs.confirmed||'Pedido confirmado ✅').replace('{fecha}', fechaText);
-			// Append a compact order summary so the customer sees the content
-			let content = '';
-			try { content = summarizeItems(conv, cfg, msgs); } catch{}
-			return content ? (confirmedText + '\n\n' + content) : confirmedText;
+			return (msgs.confirmed||'Pedido confirmado ✅').replace('{fecha}',conv.data.fecha||'');
 		}
 		default: {
 			const wasWelcomed=conv.welcomed,lastW=conv.lastWelcomeAt;
