@@ -2,7 +2,10 @@
   "watch": ["."],
   "ext": "js,json",
   "ignore": [
-    "data/**/sessions/**",
+    "data/**",               
+    "logs/**",
+    "sessions/**",
+    "**/.wwebjs_auth/**",
     "data/**/.wwebjs_cache/**",
     "public/*.css.map"
   ]

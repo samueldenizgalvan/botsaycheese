@@ -52,6 +52,20 @@ if(typeof loadSeenCanceled === 'undefined'){
   window.saveLastVisitCanceled = saveLastVisitCanceled;
 }
 
+// Persistencia de confirmados vistos (similar a cancelados)
+if(typeof loadSeenConfirmed === 'undefined'){
+  const LS_SEEN_C = 'seenConfirmedIds';
+  const LS_LAST_C = 'lastVisitConfirmed';
+  function loadSeenConfirmed(){ try { return new Set(JSON.parse(localStorage.getItem(LS_SEEN_C) || '[]')); } catch { return new Set(); } }
+  function saveSeenConfirmed(set){ try { localStorage.setItem(LS_SEEN_C, JSON.stringify([...set])); } catch{} }
+  function loadLastVisitConfirmed(){ try { const v=Number(localStorage.getItem(LS_LAST_C)); return Number.isFinite(v)?v:0; } catch { return 0; } }
+  function saveLastVisitConfirmed(ms){ try { localStorage.setItem(LS_LAST_C, String(ms)); } catch{} }
+  window.loadSeenConfirmed = loadSeenConfirmed;
+  window.saveSeenConfirmed = saveSeenConfirmed;
+  window.loadLastVisitConfirmed = loadLastVisitConfirmed;
+  window.saveLastVisitConfirmed = saveLastVisitConfirmed;
+}
+
 // =========================
 // Estado en memoria para cancelados vistos / frescos
 // =========================
@@ -60,6 +74,20 @@ let lastVisitCanceled = (typeof loadLastVisitCanceled === 'function') ? loadLast
 if(!Number.isFinite(lastVisitCanceled) || lastVisitCanceled <= 0){
   lastVisitCanceled = Date.now();
   if(typeof saveLastVisitCanceled === 'function') try { saveLastVisitCanceled(lastVisitCanceled); } catch{}
+}
+// Marca en memoria para diferenciar cancelados que acaban de llegar por SSE o acción local
+const FRESH_CANCELED_IDS = new Set();
+// Marca en memoria para confirmados nuevos (especialmente tras modificar)
+const FRESH_CONFIRMED_IDS = new Set();
+
+// =========================
+// Estado en memoria para confirmados vistos / frescos
+// =========================
+let seenConfirmedIds = (typeof loadSeenConfirmed === 'function') ? loadSeenConfirmed() : new Set();
+let lastVisitConfirmed = (typeof loadLastVisitConfirmed === 'function') ? loadLastVisitConfirmed() : 0;
+if(!Number.isFinite(lastVisitConfirmed) || lastVisitConfirmed <= 0){
+  lastVisitConfirmed = Date.now();
+  if(typeof saveLastVisitConfirmed === 'function') try { saveLastVisitConfirmed(lastVisitConfirmed); } catch{}
 }
 
 // Un pedido cancelado es "fresh" si:
@@ -77,6 +105,22 @@ function isFreshCanceled(order){
     const ts = Number(order.canceledAt || order.createdAt || 0);
     if(!Number.isFinite(ts)) return false;
     return ts > lastVisitCanceled;
+  } catch { return false; }
+}
+
+// Un pedido confirmado es "fresh" si:
+//  - status === 'confirmed'
+//  - su id NO está en seenConfirmedIds
+//  - confirmedAt (o createdAt fallback) > lastVisitConfirmed
+function isFreshConfirmed(order){
+  try {
+    if(!order) return false;
+    if(String(order.status||'').toLowerCase() !== 'confirmed') return false;
+    const id = String(order.id);
+    if(seenConfirmedIds.has(id)) return false;
+    const ts = Number(order.confirmedAt || order.createdAt || 0);
+    if(!Number.isFinite(ts)) return false;
+    return ts > lastVisitConfirmed;
   } catch { return false; }
 }
 
@@ -224,7 +268,8 @@ function renderCard(order){
     const fresh = isFreshCanceled(order);
     card.className = 'order-card canceled ' + (fresh ? 'is-fresh highlight-new' : 'dismissed');
   } else {
-    card.className = 'order-card';
+    const freshC = isConfirmed && isFreshConfirmed(order);
+    card.className = 'order-card' + (freshC ? ' is-fresh highlight-new' : '');
   }
   card.setAttribute('data-card-id', String(order.id));
   const telefono = getTelefono(order);
@@ -347,6 +392,36 @@ function clearAndFill(listId, items){
     ensureMarkSeenButton();
     // Attach dismiss handlers to all fresh canceled cards (batch render)
     try { cont.querySelectorAll('.order-card.canceled.is-fresh').forEach(c=> attachFreshDismissHandler(c)); } catch{}
+    updateCanceledBadge();
+    ensureCancelTabAlarm();
+    // Forzar distintivo de "nuevo" en cancelados llegados por SSE o acción local
+    try {
+      cont.querySelectorAll('.order-card.canceled').forEach(el=>{
+        const id = el.getAttribute('data-card-id');
+        if(id && FRESH_CANCELED_IDS.has(String(id))){
+          el.classList.remove('dismissed');
+          el.classList.add('is-fresh');
+          el.classList.add('highlight-new');
+        }
+      });
+    } catch{}
+  } else if(listId==='list-confirmados'){
+    ensureMarkSeenConfirmedButton();
+    // Forzar distintivo de "nuevo" en confirmados llegados por SSE
+    try {
+      const contEl = $id('list-confirmados');
+      if(contEl){
+        contEl.querySelectorAll('.order-card').forEach(el=>{
+          const id = el.getAttribute('data-card-id');
+          if(id && FRESH_CONFIRMED_IDS.has(String(id))){
+            el.classList.add('is-fresh');
+            el.classList.add('highlight-new');
+          }
+        });
+      }
+    } catch{}
+    updateConfirmedBadge();
+    ensureConfirmedTabAlarm();
   }
 }
 
@@ -547,6 +622,8 @@ async function renderPedidos(){
     // Asegurar badge y alarma actualizados tras render completo
     updateCanceledBadge();
     ensureCancelTabAlarm();
+    updateConfirmedBadge();
+    ensureConfirmedTabAlarm();
     try { console.log('[freshCount]', countFreshCanceled()); } catch{}
   }catch{}
 }
@@ -569,6 +646,19 @@ function startEvents(){
       const d = JSON.parse(e.data||'{}');
       const ord = d?.order;
       if(!ord) return;
+      // Si el creado viene ya cancelado (p.ej., cancelación iniciada por el cliente), tratar como cancelación
+      if(String(ord.status||'').toLowerCase()==='canceled'){
+        try { FRESH_CANCELED_IDS.add(String(ord.id)); } catch{}
+        // Actualizar caches/UI directamente a cancelados
+        const sid = String(ord.id);
+        removeFromCaches(sid);
+        addCanceledCard(ord);
+        updateCanceledBadge();
+        ensureCancelTabAlarm();
+        ensureMarkSeenButton();
+        applyActiveFilter();
+        return;
+      }
       // Si este nuevo pedido reemplaza a otro, elimínalo de cachés y UI inmediatamente
       if(ord.replaces){
         const rid = String(ord.replaces);
@@ -588,8 +678,8 @@ function startEvents(){
       renderPedidos().then(()=>{ try { ensureCancelTabAlarm(); } catch{} }).catch(()=>{});
     }catch{}
   });
-  es.addEventListener('order_canceled', e=>{ try{ const d=JSON.parse(e.data||'{}'); if(d?.order){ moveToCanceled(d.order); ensureCancelTabAlarm(); ensureMarkSeenButton(); } }catch{} });
-  es.addEventListener('order_confirmed', e=>{ try{ const d=JSON.parse(e.data||'{}'); if(d?.order){ moveToConfirmed(d.order); toast('Pedido confirmado ✅','ok'); } }catch{} });
+  es.addEventListener('order_canceled', e=>{ try{ const d=JSON.parse(e.data||'{}'); if(d?.order){ try{ FRESH_CANCELED_IDS.add(String(d.order.id)); }catch{} moveToCanceled(d.order); ensureCancelTabAlarm(); ensureMarkSeenButton(); } }catch{} });
+  es.addEventListener('order_confirmed', e=>{ try{ const d=JSON.parse(e.data||'{}'); if(d?.order){ try{ FRESH_CONFIRMED_IDS.add(String(d.order.id)); }catch{} moveToConfirmed(d.order); toast('Pedido confirmado ✅','ok'); } }catch{} });
   es.addEventListener('error', ()=>{ try{ es.close(); }catch{}; setTimeout(startEvents, 2500); });
 }
 window.addEventListener('beforeunload', ()=>{ if(es) try{ es.close(); }catch{} });
@@ -603,6 +693,15 @@ function addCanceledCard(order){
   let newCard;
   if(list.firstChild){ newCard = renderCard(o); list.insertBefore(newCard, list.firstChild); }
   else { newCard = renderCard(o); list.appendChild(newCard); }
+  // Forzar distintivo de "nuevo" si llega por evento reciente
+  try {
+    const sid = String(o.id);
+    if(FRESH_CANCELED_IDS && FRESH_CANCELED_IDS.has(sid)){
+      newCard.classList.remove('dismissed');
+      newCard.classList.add('is-fresh');
+      newCard.classList.add('highlight-new');
+    }
+  } catch{}
   updateEmptyStates();
   updateCanceledBadge();
   ensureMarkSeenButton();
@@ -616,6 +715,8 @@ function markCardConfirmed(id){
   // Remove confirm button if still present
   const confirmBtn = el.querySelector('.actions .btn.btn-primary');
   if(confirmBtn){ confirmBtn.remove(); }
+  // Marca fresh para que, al moverse a Confirmados por SSE, destaque como nuevo
+  try { FRESH_CONFIRMED_IDS.add(String(id)); } catch{}
 }
 
 function moveToConfirmed(order){
@@ -628,6 +729,16 @@ function moveToConfirmed(order){
   // Update UI lists according to current filter
   removeCard(id);
   applyActiveFilter();
+  try { ensureMarkSeenConfirmedButton(); } catch{}
+  try { updateConfirmedBadge(); ensureConfirmedTabAlarm(); } catch{}
+  // Aplicar marca visual si este confirmado es nuevo
+  try {
+    const el = document.querySelector(`[data-card-id="${safeEscape(String(id))}"]`);
+    if(el && FRESH_CONFIRMED_IDS.has(String(id))){
+      el.classList.add('is-fresh');
+      el.classList.add('highlight-new');
+    }
+  } catch{}
 }
 
 function moveToCanceled(order){
@@ -643,7 +754,7 @@ function moveToCanceled(order){
 }
 
 function countFreshCanceled(){
-  return document.querySelectorAll('#list-cancelados .order-card.canceled.is-fresh').length;
+  try { return FRESH_CANCELED_IDS.size; } catch { return 0; }
 }
 function updateCanceledBadge(){
   const n = countFreshCanceled();
@@ -655,6 +766,7 @@ function ensureCancelTabAlarm(){
   const tab = document.querySelector('.tabbar .tab[data-target="cancelados"]');
   if(!tab) return;
   if(countFreshCanceled()>0) tab.classList.add('highlight-cancelados');
+  else tab.classList.remove('highlight-cancelados');
 }
 function ensureMarkSeenButton(){
   const panel = document.getElementById('panel-cancelados'); if(!panel) return;
@@ -676,12 +788,62 @@ function markAllCanceledSeen(){
   document.querySelectorAll('#list-cancelados .order-card.canceled.is-fresh').forEach(el=>{
     const id=el.getAttribute('data-card-id'); if(id) seenCanceledIds.add(String(id));
     el.classList.remove('is-fresh'); el.classList.add('dismissed');
+    try { if(id && FRESH_CANCELED_IDS) FRESH_CANCELED_IDS.delete(String(id)); } catch{}
   });
+  try { if(FRESH_CANCELED_IDS && FRESH_CANCELED_IDS.size===0) {/* noop */} } catch{}
   saveSeenCanceled(seenCanceledIds);
   updateCanceledBadge();
   ensureMarkSeenButton();
   const cancelTab = document.querySelector('.tabbar .tab[data-target="cancelados"]');
   if(cancelTab) cancelTab.classList.remove('highlight-cancelados');
+}
+
+// Barra y acción de "Marcar vistos" para confirmados
+function ensureMarkSeenConfirmedButton(){
+  const panel = document.getElementById('panel-confirmados'); if(!panel) return;
+  let bar = panel.querySelector('.mark-seen-bar');
+  if(!bar){
+    bar = document.createElement('div');
+    bar.className = 'mark-seen-bar';
+    const btn = document.createElement('button');
+    btn.className = 'btn-mark-seen';
+    btn.textContent = 'Marcar todos vistos';
+    btn.addEventListener('click', ()=> markAllConfirmedSeen());
+    bar.appendChild(btn);
+    panel.insertBefore(bar, panel.firstChild);
+  }
+  const countFresh = document.querySelectorAll('#list-confirmados .order-card.is-fresh').length;
+  bar.hidden = countFresh === 0;
+}
+function markAllConfirmedSeen(){
+  const now=Date.now(); saveLastVisitConfirmed(now); lastVisitConfirmed=now;
+  document.querySelectorAll('#list-confirmados .order-card.is-fresh').forEach(el=>{
+    const id=el.getAttribute('data-card-id'); if(id) seenConfirmedIds.add(String(id));
+    el.classList.remove('is-fresh'); el.classList.remove('highlight-new');
+    try { if(id) FRESH_CONFIRMED_IDS.delete(String(id)); } catch{}
+  });
+  saveSeenConfirmed(seenConfirmedIds);
+  updateConfirmedBadge();
+  ensureMarkSeenConfirmedButton();
+  const tab = document.querySelector('.tabbar .tab[data-target="confirmados"]');
+  if(tab) tab.classList.remove('highlight-confirmados');
+}
+
+// Badge y alarma para confirmados
+function countFreshConfirmed(){
+  try { return FRESH_CONFIRMED_IDS.size; } catch { return 0; }
+}
+function updateConfirmedBadge(){
+  const n = countFreshConfirmed();
+  const badge = document.getElementById('badge-confirmados');
+  if(!badge) return;
+  if(n>0){ badge.textContent = String(n); badge.hidden=false; } else { badge.hidden=true; }
+}
+function ensureConfirmedTabAlarm(){
+  const tab = document.querySelector('.tabbar .tab[data-target="confirmados"]');
+  if(!tab) return;
+  if(countFreshConfirmed()>0) tab.classList.add('highlight-confirmados');
+  else tab.classList.remove('highlight-confirmados');
 }
 // Eliminada línea suelta de filtrado redundante
 
@@ -732,6 +894,7 @@ async function cancelOrder(id){
   removeFromCaches(id);
   removeCard(id);
   CACHE.canceled.push(data.order);
+  try { FRESH_CANCELED_IDS.add(String(data.order.id)); } catch{}
   addCanceledCard(data.order);
   updateEmptyStates();
   try { ensureCancelTabAlarm(); } catch{}

@@ -598,6 +598,10 @@ body.mobile-app { min-height:100dvh; display:flex; flex-direction:column; }
 .empty { padding:16px; color:#64748b; text-align:center; }
 .card-list { display:flex; flex-direction:column; gap:10px; }
 .order-card { background:var(--card); border:1px solid rgba(255,255,255,.06); border-radius:12px; padding:10px; box-shadow:var(--shadow); color:var(--text); }
+.order-card.is-fresh:not(.canceled){
+	border:2px solid rgba(16,185,129,.85);
+	box-shadow:0 0 18px -6px rgba(16,185,129,.45);
+}
 .order-card .row { display:flex; gap:8px; align-items:center; margin:4px 0; flex-wrap:wrap; }
 .order-card .row.top { justify-content:space-between; margin-bottom:6px; }
 .order-card .date { font-size:.8rem; color:#b6c3d3; }
@@ -621,11 +625,25 @@ body.mobile-app { min-height:100dvh; display:flex; flex-direction:column; }
 .tabbar .tab .tab-badge { position:absolute; top:2px; right:6px; background:#ef4444; color:#fff; font-size:10px; line-height:1; padding:3px 5px; border-radius:10px; font-weight:700; box-shadow:0 0 0 2px #fff; animation:badgePop .35s cubic-bezier(.4,0,.2,1); }
 @keyframes badgePop { from { transform:scale(.6); opacity:0; } to { transform:scale(1); opacity:1; } }
 
-/* Botón marcar vistos en panel cancelados */
-#panel-cancelados .mark-seen-bar { display:flex; justify-content:flex-end; margin:4px 0 8px; }
-#panel-cancelados .mark-seen-bar .btn-mark-seen { background:#111827; color:#fff; border:1px solid #374151; font-size:.65rem; padding:6px 10px; border-radius:8px; cursor:pointer; font-weight:600; display:inline-flex; align-items:center; gap:4px; }
-#panel-cancelados .mark-seen-bar .btn-mark-seen:hover { background:#1f2937; }
-#panel-cancelados .mark-seen-bar .btn-mark-seen:active { background:#0f172a; }
+/* Botón marcar vistos en panel cancelados y confirmados */
+#panel-cancelados .mark-seen-bar,
+#panel-confirmados .mark-seen-bar { display:flex; justify-content:flex-end; margin:4px 0 8px; }
+#panel-cancelados .mark-seen-bar .btn-mark-seen,
+#panel-confirmados .mark-seen-bar .btn-mark-seen { background:#111827; color:#fff; border:1px solid #374151; font-size:.65rem; padding:6px 10px; border-radius:8px; cursor:pointer; font-weight:600; display:inline-flex; align-items:center; gap:4px; }
+#panel-cancelados .mark-seen-bar .btn-mark-seen:hover,
+#panel-confirmados .mark-seen-bar .btn-mark-seen:hover { background:#1f2937; }
+#panel-cancelados .mark-seen-bar .btn-mark-seen:active,
+#panel-confirmados .mark-seen-bar .btn-mark-seen:active { background:#0f172a; }
+
+/* Highlight animation for new confirmed items (tab alert) */
+.tab.highlight-confirmados {
+	animation: pulseConfirmed 1.2s ease-in-out infinite;
+	position: relative;
+}
+@keyframes pulseConfirmed {
+	0%,100% { color: #10b981; transform: translateY(0); }
+	50% { color: #34d399; transform: translateY(-2px); }
+}
 
 .modal { position:fixed; inset:0; background:rgba(0,0,0,.45); display:none; align-items:center; justify-content:center; z-index:50; padding:16px; }
 .modal.open { display:flex; }

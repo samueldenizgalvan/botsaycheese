@@ -23,7 +23,7 @@
   "prices": { "grande": 35.0, "cajitas": 12.0, "grande_queso_curado": 40.0, "cajitas_queso_curado": 13.0 },
   "messages": {
     "welcome": "¡Hola! 👋 Soy el asistente de *SayCheese By Nestor*.\n\n👉Puedes escribir *menu* en cualquier momento para volver al inicio.\n👉 *atras* Para retroceder o *cancelar* Para cancelar algún proceso ✅.",
-    "menu": "Menú principal 📋\n👉 *1)* Hacer pedido 🛒\n👉 *2)* Cancelar pedido ❌\n👉 *3)* Modificar pedido ✏️\n👉 *4)* Dirección 📍\n👉 *5)* Información ℹ️\n \n(Responde con el número)",
+    "menu": "Menú principal 📋\n👉 *1* Hacer pedido 🛒\n👉 *2* Cancelar pedido ❌\n👉 *3* Modificar pedido ✏️\n👉 *4* Dirección 📍\n👉 *5* Información ℹ️\n \n(Responde con el número)",
   "bad_option": "Mmm… no te entendí 🤖. Escribe *pedido* para empezar 🎂 o *menu* para ver opciones 📋.",
 
     "ask_telefono": "Indica tu *teléfono* (9 dígitos) 📞:",
@@ -40,7 +40,7 @@
 
   "summary": "🧾 Pedido para {telefono}.\n• Tamaño: {tamano}\n• Sabores: {sabores}\n• Cantidad: {cantidad}\n• Recogida: {fecha}{horario}\n• Total : *{total}€*\n\n¿Confirmas? (si/no) ✅❌",
     "confirm_yesno": "👉 Responde *si* o *no*, por favor.",
-    "confirmed": "¡Listo! ✅ Hemos registrado tu pedido. Te enviaremos la confirmacion 🙌.",
+  "confirmed": "¡Hola! 🎉\nHemos confirmado tu pedido para el {fecha}. ✅\nGracias por confiar en nosotros. Recuerda que los pagos son a la recogida en efectivo o tarjeta 🧁🥳\n\nLas porciones (4,5€) son sin reserva de Viernes a Domingo.\n❗Horario semanal:\nMiércoles y jueves: 11:00 – 13:00\nViernes: 18:00 – 20:30\nSábado y domingo: 11:00 – 13:30",
     "canceled": "Entendido. No se ha hecho ningun pedido ❌. ¡Gracias ! Escribe menu para volver al inicio . ",
 
     "delete_intro": "De acuerdo 🗂️. Dime el *número de teléfono* del pedido que quieres *cancelar* (9 dígitos) 🔢.",
@@ -54,7 +54,7 @@
     "ask_cantidad_entera": "¿Cuántas *tartas grandes* quieres? (1–20) 🔢",
     "ask_cantidad_cajitas": "¿Cuántas *cajitas* quieres? (1–50) 📦",
   "ask_obs": "",
-  "pickup_schedule": "Las porciones (4,5€) son sin reserva de Viernes a Domingo.\n❗Horario semanal:\nMiércoles y jueves: 11:00 – 13:00\nViernes: 18:00 – 20:30 \n Sábado y domingo: 11:00 – 13:30",
+  "pickup_schedule": "Las porciones (4,5€) son sin reserva de Viernes a Domingo.\n❗Horario semanal:\nMiércoles y jueves: 11:00 – 13:00\nViernes: 18:00 – 20:30\nSábado y domingo: 11:00 – 13:30",
     "ask_delete_phone": "Vale 🗂️. Dime el *número de teléfono* del pedido que quieres cancelar (9 dígitos) 🔢.",
     "delete_not_found": "No encontré pedidos *pendientes* con ese número 🔎 Escribe menu para ver opciones.",
     "delete_found_confirm": "He encontrado {count} pedido(s) *pendiente(s)* para el teléfono *{telefono}* ☎️. ¿Quieres borrarlo(s)? (si/no)",
@@ -70,6 +70,10 @@
   "sabores": ["Clásica", "Lotus", "Pistacho", "Oreo", "Gofio", "Mango-Maracuyá", "Hippo", "Queso Canario Premium"],
     "precios": { "grande": 35, "cajitas": 12, "grande_queso_curado": 40, "cajitas_queso_curado": 13 },
     "blackout_dates": ["01-11"]
+    ,
+    "auto_confirm_pending": true
+    ,
+    "chat_confirm": false
   },
   "flow": [
     {
